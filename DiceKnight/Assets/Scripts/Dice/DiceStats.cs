@@ -7,8 +7,10 @@ using UnityEngine;
 [Serializable]
 public class DiceStats : MonoBehaviour
 {
-    public string Name;
+    public DiceType DiceType;
+    public int Cost;
     public int Damage;
-    public int MoveCount;
-    public List<Vector2> attackArea;
+    public int Defense;
+    public int Movement;
+    public List<Vector2> AttackArea;
 }
