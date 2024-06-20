@@ -173,7 +173,7 @@ public class StageManager : MonoBehaviour
                 }
             }
 
-            //해당 좌표가 없는경우 좌표를 추가하고 주사위를 그 위치에 추가
+            //좌표를 추가하고 주사위를 그 위치에 추가
             if (!playerDices.ContainsKey(_tile.GetXY()))
                 playerDices.Add(_tile.GetXY(), _dice);
             else
@@ -390,7 +390,6 @@ public class StageManager : MonoBehaviour
 
     public (int x, int y) GetXYFromDice(Dice _dice)
     {
-        Dice dice;
         int count = playerDices.Keys.Count;
         List<(int x, int y)> keys = playerDices.Keys.ToList();
 
@@ -413,5 +412,33 @@ public class StageManager : MonoBehaviour
     public bool GetEnemyIsSolo()
     {
         return isPlayerSolo;
+    }
+
+    public void BreakDice(Dice _dice)
+    {
+        int pcount = playerDices.Keys.Count;
+        List<(int x, int y)> pkeys = playerDices.Keys.ToList();
+
+        for (int i = 0; i < pcount; i++)
+        {
+            if (playerDices[pkeys[i]] == _dice)
+            {
+                playerDices.Remove(pkeys[i]);
+            }
+        }
+
+        int ecount = playerDices.Keys.Count;
+        List<(int x, int y)> ekeys = playerDices.Keys.ToList();
+
+        for (int i = 0; i < ecount; i++)
+        {
+            if (playerDices[ekeys[i]] == _dice)
+            {
+                playerDices.Remove(ekeys[i]);
+            }
+        }
+
+        Destroy(_dice.gameObject);
+        Destroy(_dice);
     }
 }

@@ -13,6 +13,9 @@ public class PlayerSet : InputAndAction
     private StageManager stageManager;
     private PlayerDiceManager playerDiceManager;
 
+    [SerializeField] private GameObject tray;
+    [SerializeField] private Button nextBtn;
+
     private delegate Dice DelegateSelectedDice();
     private DelegateSelectedDice selectedDice;
 
@@ -33,6 +36,7 @@ public class PlayerSet : InputAndAction
         InputManager.TurnActionList.Add(Turn.PlayerSet, this);
 
         turnName = "PlayerSet";
+        nextBtn.onClick.AddListener(ClickEnd);
     }
 
     protected override void Start()
@@ -47,6 +51,7 @@ public class PlayerSet : InputAndAction
     protected override void PreAction()
     {
         stageManager.CloseController();
+        nextBtn.gameObject.SetActive(true);
 
         preActionHolder = true;
         inputHolder = false;
@@ -114,5 +119,15 @@ public class PlayerSet : InputAndAction
 
         stageManager.ChooseDice(false);
         
+    }
+
+    private void ClickEnd()
+    {
+        if (stageManager.HideList(tray))
+        {
+            stageManager.NextTurn();
+            nextBtn.gameObject.SetActive(false);
+            this.enabled = false;
+        }
     }
 }

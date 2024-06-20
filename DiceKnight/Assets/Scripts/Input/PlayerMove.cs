@@ -12,6 +12,7 @@ public class PlayerMove : InputAndAction
 
     private StageManager stageManager;
 
+    [SerializeField] private GameObject actionBar;
     [SerializeField] private Button resetBtn;
     [SerializeField] private Button okBtn;
 
@@ -59,6 +60,7 @@ public class PlayerMove : InputAndAction
 
     protected override void PreAction()
     {
+        actionBar.SetActive(true);
         stageManager.SetContollerField();
         stageManager.OpenController();
         preActionHolder = true;

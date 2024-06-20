@@ -3,6 +3,7 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Runtime.InteropServices;
 using TMPro;
+using Unity.VisualScripting;
 using Unity.VisualScripting.Antlr3.Runtime.Misc;
 using UnityEngine;
 using static UnityEngine.GraphicsBuffer;
@@ -15,13 +16,15 @@ public class Dice : MonoBehaviour
     [SerializeField] private TMP_Text currentNumberText;
     [SerializeField] private TMP_Text bottomNumberText;
     [SerializeField] private TMP_Text rightNumberText;
+    [SerializeField] private TMP_Text hurtDamageText;
     public Animator movingAnimator;
     public Animator attackAnimator;
+    public Animator hurtAnimator;
 
     protected DiceStats stats;
 
     //현재 체력을 저장합니다
-    private int currentHp;
+    private float currentHp;
     //현재 주사위 눈, 앞, 오른쪽에 위치한 주사위의 눈을 저장합니다
     private (int current, int right, int bottom) diceNumber;
     public (int current, int right, int bottom) tempNumber;
@@ -52,6 +55,7 @@ public class Dice : MonoBehaviour
 
     private void OnMouseUp()
     {
+        StageManager.Instance.CloseStatUI();
         isHolding = false;
     }
 
@@ -62,7 +66,7 @@ public class Dice : MonoBehaviour
         return stats.DiceType;
     }
 
-    public int GetHP()
+    public float GetHP()
     {
         return currentHp;
     }
@@ -243,6 +247,23 @@ public class Dice : MonoBehaviour
         movingAnimator.SetTrigger(_direction.ToString());
     }
 
+    public void RunAttackAnimation(DiceType _type)
+    {
+        attackAnimator.SetTrigger(_type.ToString());
+    }
+
+    public void Hurt(float damage)
+    {
+        currentHp = Mathf.Clamp(currentHp - damage, 0, stats.Hp);
+        hurtDamageText.text = (Mathf.Floor(damage * 100f) / 100f).ToString();
+        hurtAnimator.SetTrigger("Hurt");
+
+        if (currentHp <= 0)
+        {
+            StartCoroutine(destroySelfCo());
+        }
+    }
+
     //주사위 길게 누른채 이동범위를 벗어나지 않으면 스탯 ui를 표시함 
     private IEnumerator CheckHoldingCo()
     {
@@ -257,7 +278,7 @@ public class Dice : MonoBehaviour
             
             yield return new WaitForEndOfFrame();
 
-            if (time >= 1f)
+            if (time >= 0.5f)
             {
                 StageManager.Instance.ShowStatUI(this);
                 if (PlayerDiceManager.Instance.SelectedDice() != null)
@@ -329,6 +350,28 @@ public class Dice : MonoBehaviour
         }
 
         targetedCo = null;
+        yield break;
+    }
+
+    private IEnumerator destroySelfCo()
+    {
+        //애니메이션 재생
+        //애니메이션은 0.2초 내로 구성
+        float time = 0;
+        while (true)
+        {
+            time += Time.deltaTime * 10;
+
+            yield return new WaitForEndOfFrame();
+
+            if (time >= 1f)
+            {
+                break;
+            }
+        }
+
+        StageManager.Instance.BreakDice(this);
+        isHolding = false;
         yield break;
     }
 }

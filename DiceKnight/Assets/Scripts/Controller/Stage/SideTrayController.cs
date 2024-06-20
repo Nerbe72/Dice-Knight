@@ -14,9 +14,6 @@ public class SideTrayController : MonoBehaviour
     private PlayerDiceManager playerDiceManager;
     private StageManager stageManager;
 
-    [SerializeField] private Button nextBtn;
-
-    [SerializeField] private GameObject tray;
     [SerializeField] private TMP_Text cost;
     [SerializeField] private TMP_Text dice;
     [SerializeField] private List<Image> diceFrames;
@@ -37,9 +34,6 @@ public class SideTrayController : MonoBehaviour
             Destroy(this);
             return;
         }
-
-        nextBtn.gameObject.SetActive(true);
-        nextBtn.onClick.AddListener(ClickSetEnd);
     }
 
     private void Start()
@@ -127,17 +121,7 @@ public class SideTrayController : MonoBehaviour
             RecallDice(obj.GetComponent<Dice>());
         }
     }
-
-    private void ClickSetEnd()
-    {
-        if (stageManager.HideList(tray))
-        {
-            stageManager.NextTurn();
-            nextBtn.gameObject.SetActive(false);
-            this.enabled = false;
-        }
-    }
-
+    
     private IEnumerator initUICo()
     {
         yield return new WaitForEndOfFrame();

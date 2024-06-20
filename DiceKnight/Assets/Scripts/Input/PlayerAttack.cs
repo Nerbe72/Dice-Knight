@@ -1,6 +1,8 @@
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using Unity.Burst.CompilerServices;
+using Unity.VisualScripting;
 using UnityEngine;
 using UnityEngine.UI;
 
@@ -51,18 +53,18 @@ public class PlayerAttack : InputAndAction
 
     protected override void InputStyle()
     {
+        if (!okBtn.gameObject.activeSelf) okBtn.gameObject.SetActive(true);
+
         if (Input.GetMouseButtonDown(0))
         {
             Ray ray = Camera.main.ScreenPointToRay(Input.mousePosition);
             RaycastHit2D hit = Physics2D.Raycast(ray.origin, ray.direction, LayerMask.GetMask("Dice"));
 
-            if (hit.collider == null || hit.collider.tag != "Dice")
-            {
-                if (selectedDice != null)
-                    selectedDice.UnSetFrameBlinking();
+            if (hit.collider == null || hit.collider.tag != "Dice") return;
+
+            //필요한 값 초기화
+            if (selectedDice != null)
                 InitTargets();
-                return;
-            }
 
             selectedDice = hit.collider.GetComponent<Dice>();
             selectedDice.SetFrameBlinking();
@@ -73,39 +75,13 @@ public class PlayerAttack : InputAndAction
 
     protected override void Action()
     {
-        //플레이어가 혼자 남은 경우 타일 공격 가능
-        if (stageManager.GetPlayerIsSolo())
-        {
+        StartCoroutine(attackCo());
 
-        }
-        //run Animation (코루틴)
-        //애니메이션이 끝날 때 데미지를 넣고 데미지 표시
-        //
-        //피격된 적 주사위 체력 감소
-        //피격된 본체 체력 감소
-        //nexturn
-
-        //데미지 넣는 반복문
-        //int diceCount = targetDice.Count;
-        //for (int i = 0; i < diceCount; i++)
-        //{
-
-        //}
-
-        //int tileCount = targetTile.Count;
-        //for (int i = 0; i < tileCount; i++)
-        //{
-
-        //}
-
-
+        actionHolder = true;
     }
 
     private void SetTarget()
     {
-        //필요한 값 초기화
-        InitTargets();
-
         selectedAttackArea = selectedDice.GetAttackArea();
         selectedXY = stageManager.GetXYFromDice(selectedDice);
 
@@ -150,15 +126,14 @@ public class PlayerAttack : InputAndAction
 
         //공격 타깃 시각적 표시
         BlinkTargets();
-
-        //선택된 내용에 맞춰 공격 범위 및 대상 강조
-        //setblinkenemy - 공격 대상 위치에 있는 enemyDices[(x, y)]의 이미지를 빨갛게 강조하도록 설정
     }
 
     private void DoAttack()
     {
         //공격 대상 지정 안됨 체크
+        if (selectedDice == null) return;
 
+        okBtn.gameObject.SetActive(false);
         inputHolder = true;
         actionHolder = false;
     }
@@ -175,11 +150,14 @@ public class PlayerAttack : InputAndAction
 
         for (int i = 0; i < diceCount; i++)
         {
+            if (targetDice[i] != null)
             targetDice[i].UnSetBlinking();
         }
 
         targetDice.Clear();
         targetTile.Clear();
+        selectedDice.UnSetFrameBlinking();
+        selectedDice = null;
         targetXY = (-1, -1);
     }
 
@@ -199,13 +177,55 @@ public class PlayerAttack : InputAndAction
         }
     }
 
-    private void AttackTile()
+    private IEnumerator attackCo()
     {
+        selectedDice.RunAttackAnimation(selectedDice.GetDiceType());
+        float time = 0;
+        bool enterHalf = true;
 
+        while (true)
+        {
+            time += Time.deltaTime * 4.5f;
+
+            if (time >= 0.5f && enterHalf)
+            {
+                //피격 데미지 출력
+                //플레이어가 혼자 남은 경우 타일 공격 가능
+                if (stageManager.GetPlayerIsSolo())
+                {
+                    int tileCount = targetTile.Count;
+                    //갯수만큼 적 체력 감소
+                }
+
+                int diceCount = targetDice.Count;
+                for (int i = 0; i < diceCount; i++)
+                {
+                    //데미지 계산 공격력*주사위 눈 - 방어력/2
+                    targetDice[i].Hurt(Mathf.Clamp((selectedDice.GetDamage() * selectedDice.GetCurrentNumber().c) - (targetDice[i].GetDefense() * targetDice[i].GetCurrentNumber().c * 0.5f), 0, 30) * DebugMode.Instance.MultiplyDMG);
+                }
+                enterHalf = false;
+            }
+
+            if (time >= 1f)
+                break;
+
+            yield return new WaitForEndOfFrame();
+        }
+
+        InitTargets();
+        StartCoroutine(waitDestroy());
+        yield break;
     }
 
-    private void AttackEnemy()
+    /// <summary>
+    /// 파괴될 주사위가 있는 경우가 존재하기 때문에 2초간의 여유 시간을 제공
+    /// </summary>
+    /// <returns></returns>
+    private IEnumerator waitDestroy()
     {
-
+        //주사위가 파괴되는 시간 : 2초
+        yield return new WaitForSeconds(1);
+        stageManager.NextTurn();
+        yield break;
     }
 }

@@ -28,8 +28,8 @@ public enum RollingTo
 public enum DiceType
 {
     Normal,
+    Spear,
     Wide,
-    Powerful,
 }
 
 public enum Difficulty

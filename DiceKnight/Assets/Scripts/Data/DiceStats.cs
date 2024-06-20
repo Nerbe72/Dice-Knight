@@ -9,7 +9,7 @@ public class DiceStats : MonoBehaviour
 {
     public DiceType DiceType;
     public int Cost;
-    public int Hp;
+    public float Hp;
     public int Damage;
     public int Defense;
     public int Movement;
