@@ -17,6 +17,14 @@ public enum Turn
     Count,
 }
 
+public enum RollingTo
+{
+    Up,
+    Down,
+    Left,
+    Right,
+}
+
 public enum DiceType
 {
     Normal,
@@ -29,4 +37,17 @@ public enum Difficulty
     Easy,
     Normal,
     Hard,
+}
+
+public enum Debuff
+{
+    Burn,
+    Slow,
+}
+
+public enum Skill
+{
+    No,
+    Fire,
+    Ice,
 }

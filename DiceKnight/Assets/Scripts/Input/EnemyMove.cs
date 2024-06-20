@@ -1,12 +1,13 @@
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.EventSystems;
 
 public class EnemyMove : InputAndAction
 {
     public static EnemyMove Instance;
 
-    protected void Awake()
+    protected override void Awake()
     {
         if (Instance == null)
             Instance = this;

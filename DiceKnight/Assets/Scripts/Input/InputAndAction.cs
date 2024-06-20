@@ -9,25 +9,47 @@ public class InputAndAction : MonoBehaviour
     protected string turnName = "";
     private bool turnEnter;
 
+    //í™€ë”ê°€ trueì¸ ê²½ìš° ìŠ¤í‚µ
+    protected bool preActionHolder;
+    protected bool inputHolder;
+    protected bool actionHolder;
+
     protected virtual void Awake()
     {
         turnEnter = false;
     }
 
+    /// <summary>
+    /// ê¸°ë³¸ ì„¤ì •: preActionHolder = false; inputHolder = true; actionHolder = true;
+    /// </summary>
     protected virtual void Start()
     {
         enabled = false;
         turnEnter = true;
+        preActionHolder = false;
+        inputHolder = true;
+        actionHolder = true;
     }
 
     protected virtual void Update()
     {
-        InputStyle();
+        if (!preActionHolder && inputHolder)
+            PreAction();
+        
+        if (!inputHolder && actionHolder)
+            InputStyle();
+
+        if (!actionHolder)
+            Action();
     }
 
-    //½ºÆ®¸³Æ®°¡ enable µÇ´Â°ÍÀ» ½ÅÈ£·Î ÅÏÀ» Àç°³ÇÔ
+    /// <summary>
+    /// í„´ ì‹œì‘ íŠ¸ë¦¬ê±°. ë‹¤ì‹œ ëŒì•„ì˜¨ í„´ì—ì„œ ì´ˆê¸°í™”ê°€ í•„ìš”í•œ ê²½ìš° ì´ ìœ„ì¹˜ì—ì„œ ì´ˆê¸°í™”
+    /// </summary>
     protected virtual void OnEnable()
     {
+        if (Application.isPlaying == false) return;
+
         if (turnEnter)
         {
             ShowTurnName(StageManager.Instance.TurnNamePanel, StageManager.Instance.TurnNameText);
@@ -35,32 +57,42 @@ public class InputAndAction : MonoBehaviour
     }
 
 
-    //¸Å ÅÏÀÌ ½ÃÀÛµÇ¸é ÅÏ ÀÌ¸§À» Ç¥½ÃÇÏ°í ´ÙÀ½À¸·Î ³Ñ¾î°¨
+    //ì§„ì…ì‹œ ë§µ ì´ë¦„ í‘œì‹œ
     protected virtual void ShowTurnName(GameObject _namePanel, TMP_Text _turnText)
     {
         _turnText.text = turnName;
         _namePanel.GetComponent<Animator>().SetTrigger("ShowTurn"); //todo
     }
 
-    //ÅÏ ÀÌ¸§ Ç¥½Ã ÈÄ PreActionÀ» È£ÃâÇÏ¿© »çÀü µ¿ÀÛÀ» ¼öÇàÇÔ (µğ¹öÇÁ-È­»ó µî ÇÇÇØ À§ÁÖÀÇ Çàµ¿)
+    //í„´ ì‹œì‘ì‹œ ê³§ ë°”ë¡œ ì‘ë™. preactionholderê°€ onì¸ ê²½ìš°ë§Œ ë™ì‘
+    /// <summary>
+    /// ì¡°ê±´ ë§Œì¡±ì‹œ preActionHolder = true;  inputHolder = false;
+    /// </summary>
     protected virtual void PreAction()
     {
-
+        preActionHolder = true;
+        inputHolder = false;
     }
 
-    //¸Å ÅÏ¸¶´Ù ÀÔ·Â ¹æ½ÄÀ» º¯°æÇÔ
+    //ì‚¬ì „ ë™ì‘ í›„ ì…ë ¥ì„ í†µí•´ ì§„í–‰
+    /// <summary>
+    /// ì¡°ê±´ ë§Œì¡±ì‹œ inputHolder = true;  actionHolder = false;
+    /// </summary>
     protected virtual void InputStyle()
     {
 
     }
 
-    //¸Å ÅÏÀÇ ÀÔ·ÂÀÌ ³¡³ª¸é ActionÀ» È£ÃâÇÏ¿© µ¿ÀÛÀ» ¼öÇàÇÔ
+    //ì…ë ¥ì„ ì§„í–‰í•œ í›„ ì…ë ¥í•œëŒ€ë¡œ ë™ì‘ì„ ìˆ˜í–‰
+    /// <summary>
+    /// ì¡°ê±´ ë§Œì¡±ì‹œ next turn
+    /// </summary>
     protected virtual void Action()
     {
 
     }
 
-    //Çàµ¿ÇÒ ÁÖ»çÀ§¸¦ ¼±ÅÃÇÔ
+    //ì£¼ì‚¬ìœ„ë¥¼ ì„ íƒí•¨
     protected virtual void SelectDice()
     {
 

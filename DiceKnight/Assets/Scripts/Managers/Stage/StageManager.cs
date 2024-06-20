@@ -1,9 +1,12 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.IO;
+using System.Linq;
 using System.Runtime.CompilerServices;
 using TMPro;
 using UnityEditor;
+using UnityEditor.U2D.Aseprite;
 using UnityEngine;
 using UnityEngine.UI;
 
@@ -11,20 +14,28 @@ public class StageManager : MonoBehaviour
 {
     public static StageManager Instance;
 
+    private GameManager gameManager;
+
+    public delegate void InitStageSetting();
+    public InitStageSetting ResetAll;
+
     public int GridXSize = 5;
     public int GridYSize = 4;
 
+    private StageData currentStageData;
     private bool enterStage;
     private bool changeTurn;
     private Turn currentTurn;
+    private int currentCost;
 
-    private List<PlayerDiceCointroller> playerDices;
-    private List<EnemyDiceController> enemyDices;
+    private bool isPlayerSolo;
+    private bool isEnemySolo;
 
-    private GameObject[,] playerGrid;
-    private GameObject[,] enemyGrid;
+    private Dictionary<(int x, int y), Dice> playerDices;
+    private Dictionary<(int x, int y), Dice> enemyDices;
 
-    private List<(int, int)> nextMovePosition = new List<(int, int)>();
+    private TileData[,] playerGrid;
+    private TileData[,] enemyGrid;
 
     [Header("Sprite")]
     [Tooltip("주사위 타입별 공격 범위")][SerializeField] private List<Sprite> attackAreaSprites;
@@ -36,15 +47,18 @@ public class StageManager : MonoBehaviour
 
     [Header("게임UI")]
     [SerializeField] private List<GameObject> tilePrefabs;
-    [SerializeField] private GameObject bottomDicePullDowner;
-    [SerializeField] private GameObject bottomDiceGroup;
-    [SerializeField] private Button bottomDicePrefab;
     public GameObject TurnNamePanel;
     public TMP_Text TurnNameText;
 
     [Header("그리드")]
     [Tooltip("그리드 시스템 묶기(플레이어)")][SerializeField] private GameObject playerGirdParent;
     [Tooltip("그리드 시스템 묶기(적)")][SerializeField] private GameObject enemyGridParent;
+
+    [Header("컨트롤러")]
+    [SerializeField] private GameObject controllerBar;
+    [SerializeField] private RectTransform controllerParent;
+    [SerializeField] private GameObject controllerPrefab;
+    private ControllerDice[,] controllerGrid;
 
     //[RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.BeforeSceneLoad)]
     //private static void asdf()
@@ -61,33 +75,29 @@ public class StageManager : MonoBehaviour
             Destroy(gameObject);
             Destroy(this);
         }
-
         Init();
-        CreateGrid();
 
+        ResetAll = CreateGrid;
+        ResetAll += PutEnemyDice;
+
+        gameManager = GameManager.Instance;
+        currentStageData = gameManager.GetStageData();
     }
 
     private void Init()
     {
-        playerDices = new List<PlayerDiceCointroller>();
-        enemyDices = new List<EnemyDiceController>();
+        playerDices = new Dictionary<(int, int), Dice>();
+        enemyDices = new Dictionary<(int, int), Dice>();
 
-        playerGrid = new GameObject[GridXSize, GridYSize];
-        enemyGrid = new GameObject[GridXSize, GridYSize];
+        playerGrid = new TileData[GridXSize, GridYSize];
+        enemyGrid = new TileData[GridXSize, GridYSize];
+
+        controllerGrid = new ControllerDice[GridXSize, GridYSize];
 
         enterStage = true;
         changeTurn = false;
+        currentCost = 0;
         currentTurn = Turn.PlayerSet;
-
-        //내가 가진 주사위 갯수에 따라 길이 및 주사위 리스트 변경
-        for (int i = 0; i < 1; i++)
-        {
-            Button btn = Instantiate(bottomDicePrefab);
-            btn.transform.parent = bottomDiceGroup.transform;
-        }
-        bottomDiceGroup.GetComponent<RectTransform>().offsetMax = new Vector2(-1900 + (bottomDiceGroup.transform.childCount * 100), 0);
-        bottomDiceGroup.GetComponent<RectTransform>().offsetMin = new Vector2(20, -40);
-        bottomDiceGroup.GetComponent<RectTransform>().anchoredPosition = new Vector2(bottomDiceGroup.GetComponent<RectTransform>().anchoredPosition.x, 40);
 
 
         CloseStatUI();
@@ -100,6 +110,7 @@ public class StageManager : MonoBehaviour
 
     public void CreateGrid()
     {
+        //플레이어 판 생성
         for (int yPos = 0; yPos < GridYSize; yPos++)
         {
             for (int xPos = 0; xPos < GridXSize; xPos++)
@@ -107,49 +118,185 @@ public class StageManager : MonoBehaviour
                 GameObject obj = Instantiate(tilePrefabs[0]);
                 obj.transform.parent = playerGirdParent.transform;
                 obj.transform.localPosition = PositionFromXY((xPos, yPos));
+                obj.GetComponent<TileData>().x = xPos;
+                obj.GetComponent<TileData>().y = yPos;
+                playerGrid[xPos, yPos] = obj.GetComponent<TileData>();
             }
         }
 
+        //적 판 생성
         for (int yPos = 0; yPos < GridYSize; yPos++)
         {
             for (int xPos = 0; xPos < GridXSize; xPos++)
             {
-                GameObject obj = Instantiate(tilePrefabs[0]);
+                GameObject obj = Instantiate(tilePrefabs[1]);
                 obj.transform.parent = enemyGridParent.transform;
                 obj.transform.localPosition = PositionFromXY((xPos, yPos));
+                obj.GetComponent<TileData>().x = xPos;
+                obj.GetComponent<TileData>().y = yPos;
+                enemyGrid[xPos, yPos] = obj.GetComponent<TileData>();
             }
         }
     }
+
+    private void PutEnemyDice()
+    {
+        //적 주사위 처리
+        List<Vector2> keys = currentStageData.EnemyDiceSet.Keys.ToList();
+
+        foreach (var key in keys)
+        {
+            try
+            {
+                GameObject obj = Instantiate(gameManager.GetEnemyDiceAtType(currentStageData.EnemyDiceSet[key]));
+                (int x, int y) enemyPos = (gameManager.XYFromVec2(key));
+                AddEnemyOnBoard(enemyPos, obj.GetComponent<Dice>());
+            } catch (ArgumentException) { }
+        }
+
+
+    }
+
+    //플레이어 주사위를 보드에 추가
+    public bool AddDiceOnBoard(TileData _tile, Dice _dice)
+    {
+        //주사위가 이미 보드에 있거나, 코스트/주사위 갯수에 제한되지 않는지 확인
+        if (playerDices.Values.Contains(_dice) || SideTrayController.Instance.SetCostDiceCounter(true, _dice))
+        {
+            //주사위가 이미 보드에 있는경우 제거
+            foreach ((int x, int y) key in playerDices.Keys)
+            {
+                if (playerDices[key] == _dice)
+                {
+                    playerDices.Remove(key);
+                    break;
+                }
+            }
+
+            //해당 좌표가 없는경우 좌표를 추가하고 주사위를 그 위치에 추가
+            if (!playerDices.ContainsKey(_tile.GetXY()))
+                playerDices.Add(_tile.GetXY(), _dice);
+            else
+                playerDices[_tile.GetXY()] = _dice;
+
+            _dice.SetNumberUI();
+
+            return true;
+        }
+
+        return false;
+    }
+
+    public void AddEnemyOnBoard((int x, int y) _pos, Dice _dice)
+    {
+        enemyDices.Add(_pos, _dice);
+        _dice.SetRandomNumber();
+        _dice.transform.position = PositionFromXY(_pos);
+    }
+
 
     public Vector3 PositionFromXY((int x, int y) _pos)
     {
         return new Vector3(0.5f * (_pos.y - _pos.x), 0.215f * (_pos.x + _pos.y), 0);
     }
 
-    public void AddDiceOnGrid((int x, int y) _pos)
+    public Vector3 PositionFromGridXY((int x, int y) _pos)
     {
-        
+        return playerGrid[_pos.x, _pos.y].transform.position;
     }
 
-    public void OpenStatUI(Dice _selectedDice)
+    public Vector3 EnemyPositionFromXYEnemy()
     {
-        //0: 체력 1: 기본공격 2: 기본 방어
-        //
-        statTexts[0].text = _selectedDice.GetDamage().ToString();
-        statTexts[1].text = _selectedDice.GetDefense().ToString();
-        attackAreaImage.sprite = attackAreaSprites[(int)_selectedDice.GetID()];
-        statIndicator.transform.position = _selectedDice.transform.position + new Vector3();
+        return new Vector3();
+    }
+
+    public void ShowStatUI(Dice _selectedDice)
+    {
+        //0: 체력 1: 기본공격 2: 기본 방어 3: 이동력
+        statTexts[0].text = _selectedDice.GetHP().ToString();
+        statTexts[1].text = _selectedDice.GetDamage().ToString();
+        statTexts[2].text = _selectedDice.GetDefense().ToString();
+        statTexts[3].text = _selectedDice.GetMovement().ToString();
+        //attackAreaImage.sprite = attackAreaSprites[(int)_selectedDice.GetID()];
+        statIndicator.GetComponent<RectTransform>().position = Camera.main.WorldToScreenPoint(_selectedDice.transform.position + new Vector3(1.5f, 0, 0));
         statIndicator.SetActive(true);
+        ChooseDice(false);
+    }
+
+    public void ChooseDice(bool _select)
+    {
+        if (PlayerDiceManager.Instance.SelectedDice() == null) return;
+
+        if (_select)
+        {
+            PlayerDiceManager.Instance.SelectedDice().isHolding = true;
+            PlayerDiceManager.Instance.SelectedDice().SetFrameBlinking();
+        }
+        else
+        {
+            PlayerDiceManager.Instance.UnSelectDice();
+        }
+    }
+
+    public bool HideList(GameObject _sideTray)
+    {
+        if (GetPlayerOnBoardCount() != currentStageData.DiceLimit)
+        {
+            //갯수가 부족하면 재차 질문하는 창을 띄움
+            print("배치하지 않음");
+            return false;
+        }
+
+        _sideTray.GetComponent<Animator>().SetTrigger("Hide");
+        return true;
+
+    }
+
+    public void SetContollerField()
+    {
+        for (int i = 0; i < GridXSize; i++)
+        {
+            for (int j = 0; j < GridYSize; j++)
+            {
+                if (controllerGrid[i, j] == null)
+                {
+                    GameObject obj = Instantiate(controllerPrefab);
+                    obj.GetComponent<RectTransform>().parent = controllerParent.GetComponent<RectTransform>();
+                    controllerGrid[i, j] = obj.GetComponent<ControllerDice>();
+                }
+                
+                controllerGrid[i, j].Init(i, j);
+            }
+        }
+
+        int count = playerDices.Count;
+        List<(int x, int y)> keys = playerDices.Keys.ToList();
+        for (int i = 0; i < count; i++)
+        {
+            int x = keys[i].x;
+            int y = keys[i].y;
+            controllerGrid[x, y].SetHaveDice();
+        }
+    }
+
+    public void OpenController()
+    {
+        controllerBar.SetActive(true);
+    }
+
+    public void CloseController()
+    {
+        controllerBar.SetActive(false);
+    }
+
+    public void RedrawControllerField()
+    {
+
     }
 
     public void CloseStatUI()
     {
         statIndicator.SetActive(false);
-    }
-
-    public void CloseDiceList()
-    {
-        bottomDicePullDowner.GetComponent<Animator>().SetTrigger("EndSelect");
     }
 
     public Turn GetTurn()
@@ -160,7 +307,7 @@ public class StageManager : MonoBehaviour
     public void NextTurn()
     {
         //최초 1회 플레이어 세팅 턴 진행 후 플레이어 이동부터 적 공격까지 반복
-        currentTurn = (Turn)(((int)currentTurn + (((currentTurn == Turn.EnemyAttack) ? 2 : 1))) % (int)Turn.Count);
+        currentTurn = (Turn)(((int)currentTurn + (((currentTurn == (Turn.Count - 1)) ? 2 : 1))) % (int)Turn.Count);
         IsChangingTurn(true);
     }
 
@@ -182,5 +329,89 @@ public class StageManager : MonoBehaviour
     public bool IsChangeTurn()
     {
         return changeTurn;
+    }
+
+    public StageData GetStageData()
+    {
+        return currentStageData;
+    }
+
+    public int GetCurrentCost()
+    {
+        return currentCost;
+    }
+
+    public void SetCurrentCost(int _sum)
+    {
+        currentCost += _sum;
+    }
+
+    public int GetPlayerOnBoardCount()
+    {
+        return playerDices.Count;
+    }
+
+    public TileData GetTileFromXY((int x, int y) _xy)
+    {
+        return playerGrid[_xy.x, _xy.y];
+    }
+
+    public (int x, int y) GetGridSize()
+    {
+        return (GridXSize, GridYSize);
+    }
+
+    public Dice GetDiceFromXY(bool _isPlayers, (int x, int y) _xy)
+    {
+        if (_isPlayers)
+        {
+            if (!playerDices.ContainsKey(_xy)) return null;
+            return playerDices[_xy];
+        }
+        else
+        {
+            if (!enemyDices.ContainsKey(_xy)) return null;
+            return enemyDices[_xy];
+        }
+    }
+
+    public ControllerDice GetControllerFromXY((int x, int y) _xy)
+    {
+        return controllerGrid[_xy.x, _xy.y];
+    }
+
+    public TileData GetTileDataFromXY(bool _isPlayers, (int x, int y) _xy)
+    {
+        if (_isPlayers)
+            return playerGrid[_xy.x, _xy.y];
+        else
+            return enemyGrid[_xy.x, _xy.y];
+    }
+
+    public (int x, int y) GetXYFromDice(Dice _dice)
+    {
+        Dice dice;
+        int count = playerDices.Keys.Count;
+        List<(int x, int y)> keys = playerDices.Keys.ToList();
+
+        for (int i = 0; i < count; i++)
+        {
+            if (playerDices[keys[i]] == _dice)
+            {
+                return keys[i];
+            }
+        }
+
+        return (-1, -1);
+    }
+
+    public bool GetPlayerIsSolo()
+    {
+        return isPlayerSolo;
+    }
+
+    public bool GetEnemyIsSolo()
+    {
+        return isPlayerSolo;
     }
 }

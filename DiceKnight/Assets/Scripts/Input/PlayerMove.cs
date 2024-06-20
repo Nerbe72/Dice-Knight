@@ -1,12 +1,32 @@
 using System.Collections;
 using System.Collections.Generic;
+using Unity.VisualScripting;
+using Unity.VisualScripting.Antlr3.Runtime;
 using UnityEngine;
+using UnityEngine.EventSystems;
+using UnityEngine.UI;
 
 public class PlayerMove : InputAndAction
 {
     public static PlayerMove Instance;
 
-    protected void Awake()
+    private StageManager stageManager;
+
+    [SerializeField] private Button resetBtn;
+    [SerializeField] private Button okBtn;
+
+    private int plusPos = 96+16;
+
+    private Dice selectedDice;
+    private List<(int x, int y)> nextMovePosition = new List<(int x, int y)>();
+    private List<(int c, int r, int b)> nextMoveNumber = new List<(int c, int r, int b)>();
+    private List<bool> movingChecker = new List<bool>();
+    private List<MoveDirection> movingTo = new List<MoveDirection>();
+    private int movePointer;
+
+    private Coroutine checkMovingCo;
+
+    protected override void Awake()
     {
         if (Instance == null)
             Instance = this;
@@ -19,16 +39,159 @@ public class PlayerMove : InputAndAction
         InputManager.TurnActionList.Add(Turn.PlayerMove, this);
 
         turnName = "PlayerMove";
+
+        okBtn.onClick.AddListener(ClickOK);
+        resetBtn.onClick.AddListener(ClickReset);
     }
 
-    protected override void InputStyle()
+    protected override void Start()
     {
-
+        stageManager = StageManager.Instance;
+        base.Start();
     }
 
-    //ÁÖ»çÀ§¸¦ ¼±ÅÃÇÔ
+    
+    protected override void OnEnable()
+    {
+        movePointer = 0;
+        base.OnEnable();
+    }
 
-    //ÀÌµ¿ °æ·Î¸¦ ¸¶¿ì½º·Î ÇÑ¹ø¿¡ ±×¸² -> ´ë°¢¼± ºÒ°¡
+    protected override void PreAction()
+    {
+        stageManager.SetContollerField();
+        stageManager.OpenController();
+        preActionHolder = true;
+        inputHolder = false;
+    }
 
-    //È®ÀÎÀ» ´©¸£¸é action ÇÔ¼ö ½ÇÇà
+    protected override void Action()
+    {
+        if (nextMovePosition.Count <= movePointer)
+        {
+            //í„´ ì¢…ë£Œ
+            stageManager.AddDiceOnBoard(stageManager.GetTileFromXY(nextMovePosition[nextMovePosition.Count - 1]), selectedDice);
+            PlayerDiceManager.Instance.UnSelectDice();
+            StageManager.Instance.NextTurn();
+            return;
+        }
+
+        //ì„ íƒëœëŒ€ë¡œ ì´ë™
+        if (!movingChecker[movePointer] && checkMovingCo == null)
+        {
+            movingChecker[movePointer] = true;
+            checkMovingCo = StartCoroutine(MovingCo());
+        }
+    }
+
+    public (int x, int y) GetLatestMove()
+    {
+        if (nextMovePosition.Count == 0)
+            return (-1, -1);
+
+        return nextMovePosition[nextMovePosition.Count - 1];
+    }
+
+    //InputStyleëŒ€ì‹  ë™ì‘
+    private void ClickOK()
+    {
+        selectedDice = PlayerDiceManager.Instance.SelectedDice();
+        PlayerDiceManager.Instance.UnSelectDice();
+        stageManager.CloseController();
+        inputHolder = true;
+        actionHolder = false;
+    }
+
+    public void ClickReset()
+    {
+        stageManager.SetContollerField();
+
+        if (PlayerDiceManager.Instance.SelectedDice() != null)
+            PlayerDiceManager.Instance.UnSelectDice();
+
+        nextMovePosition.Clear();
+        nextMoveNumber.Clear();
+        movingChecker.Clear();
+        movingTo.Clear();
+        movePointer = 0;
+    }
+
+    public bool CheckContainMove((int x, int y) _xy)
+    {
+        return nextMovePosition.Contains(_xy);
+    }
+
+    public MoveDirection AddMove((int x, int y) _from, (int x, int y) _next)
+    {
+        nextMovePosition.Add(_next);
+        movingChecker.Add(false);
+
+        if (_from.x == _next.x)
+        {
+            if (_from.y < _next.y)
+            {
+                movingTo.Add(MoveDirection.Up);
+                return MoveDirection.Up;
+            }
+            else
+            {
+                movingTo.Add(MoveDirection.Down);
+                return MoveDirection.Down;
+            }
+        }
+
+        if (_from.y == _next.y)
+        {
+            if (_from.x < _next.x)
+            {
+                movingTo.Add(MoveDirection.Left);
+                return MoveDirection.Left;
+            }
+            else
+            {
+                movingTo.Add(MoveDirection.Right);
+                return MoveDirection.Right;
+            }
+        }
+
+        //ì—¬ê¸°ê¹Œì§€ ì˜¬ ì¼ ì—†ìŒ
+        return MoveDirection.Up;
+    }
+
+    public void AddMovingNumber((int c, int r, int b) _tempNumber)
+    {
+        nextMoveNumber.Add(_tempNumber);
+    }
+
+    public int MoveListSize()
+    {
+        return nextMovePosition.Count;
+    }
+
+    private IEnumerator MovingCo()
+    {
+        selectedDice.RunAnimation(movingTo[movePointer]);
+        float time = 0;
+        Vector3 fromPos = selectedDice.transform.position;
+        Vector3 targetPos = stageManager.PositionFromGridXY(nextMovePosition[movePointer]);
+
+        while (true)
+        {
+            time += Time.deltaTime * 6.44f;
+
+            selectedDice.transform.localPosition = Vector3.Lerp(fromPos, targetPos, time);
+
+            if (time >= 1f)
+                break;
+
+            yield return new WaitForEndOfFrame();
+        }
+
+        selectedDice.SetCurrentNumbers(nextMoveNumber[movePointer]);
+        selectedDice.SetNumberUI();
+        checkMovingCo = null;
+        movePointer++;
+        //ì´ë™ì´ ëë‚˜ë©´ í•´ë‹¹ ìœ„ì¹˜ì˜ xyë¡œ ì£¼ì‚¬ìœ„ë¥¼ ì´ë™(ë‹¤ì‹œ ì§‘ì–´ë„£ìŒ)
+        yield break;
+    }
 }

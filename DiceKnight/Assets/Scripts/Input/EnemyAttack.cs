@@ -6,7 +6,7 @@ public class EnemyAttack : InputAndAction
 {
     public static EnemyAttack Instance;
 
-    protected void Awake()
+    protected override void Awake()
     {
         if (Instance == null)
             Instance = this;

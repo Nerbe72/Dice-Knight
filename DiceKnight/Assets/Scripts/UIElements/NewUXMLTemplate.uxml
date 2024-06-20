@@ -1,0 +1,22 @@
+<ui:UXML xmlns:ui="UnityEngine.UIElements" xmlns:uie="UnityEditor.UIElements" xsi="http://www.w3.org/2001/XMLSchema-instance" engine="UnityEngine.UIElements" editor="UnityEditor.UIElements" noNamespaceSchemaLocation="../../../UIElementsSchema/UIElements.xsd" editor-extension-mode="False">
+    <Style src="project://database/Assets/Scripts/UIElements/HideList.uss?fileID=7433441132597879392&amp;guid=2847f6d36e0498740bffd9b024722bee&amp;type=3#HideList" />
+    <ui:VisualElement style="flex-grow: 1; height: 100%; width: 100%;">
+        <ui:VisualElement name="tray" class="show" style="flex-grow: 1; width: 8%; background-color: rgb(203, 229, 255); height: 100%; scale: 1 1; translate: 0 0;">
+            <ui:VisualElement style="flex-grow: 0; flex-direction: row; align-items: center; justify-content: space-between; font-size: 50%;">
+                <ui:Label tabindex="-1" text="Cost" parse-escape-sequences="true" display-tooltip-when-elided="true" />
+                <ui:Label tabindex="-1" text="0/0" parse-escape-sequences="true" display-tooltip-when-elided="true" name="cost" />
+            </ui:VisualElement>
+            <ui:VisualElement style="flex-grow: 0; flex-direction: row; align-items: center; justify-content: space-between; font-size: 50%;">
+                <ui:Label tabindex="-1" text="Dice" parse-escape-sequences="true" display-tooltip-when-elided="true" />
+                <ui:Label tabindex="-1" text="0/0" parse-escape-sequences="true" display-tooltip-when-elided="true" name="dice" />
+            </ui:VisualElement>
+            <ui:ScrollView name="list" style="align-items: center; flex-grow: 1; justify-content: flex-start; align-self: stretch;">
+                <ui:VisualElement style="flex-grow: 1; width: 80px; height: 80px; align-items: center;" />
+                <ui:VisualElement style="flex-grow: 1; width: 80px; height: 80px; align-items: center;" />
+                <ui:VisualElement style="flex-grow: 1; width: 80px; height: 80px; align-items: center;" />
+                <ui:VisualElement style="flex-grow: 1; width: 80px; height: 80px; align-items: center;" />
+                <ui:VisualElement style="flex-grow: 1; width: 80px; height: 80px; align-items: center;" />
+            </ui:ScrollView>
+        </ui:VisualElement>
+    </ui:VisualElement>
+</ui:UXML>

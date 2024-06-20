@@ -20,16 +20,15 @@ public class StageController : MonoBehaviour
             Destroy(this);
             return;
         }
+
+        
     }
 
     private void Start()
     {
         stageManager = StageManager.Instance;
-
-        print(InputManager.TurnActionList.Count);
+        stageManager.ResetAll();
     }
-
-
 
     private void Update()
     {
@@ -38,18 +37,10 @@ public class StageController : MonoBehaviour
 
     private void SwitchTurn()
     {
-
         if (stageManager.CheckEnterStage())
         {
             InputManager.TurnActionList[Turn.PlayerSet].SetEnable(true);
             stageManager.SetStageEntered();
-        }
-
-        //키 입력 말고 나중에 확인버튼 클릭시 호출하도록 변경
-        //스크립트 내에서 자동으로 턴이 넘어가는 경우도 존재함(적 턴의 경우)
-        if (Input.GetKeyDown(KeyCode.N))
-        {
-            stageManager.NextTurn();
         }
 
         if (stageManager.IsChangeTurn())
@@ -77,16 +68,4 @@ public class StageController : MonoBehaviour
             stageManager.IsChangingTurn(false);
         }
     }
-    
-
-    private void ResetGridColor()
-    {
-
-    }
-
-    private void SetGridBlink(List<(int, int)> _grid)
-    {
-
-    }
-
 }

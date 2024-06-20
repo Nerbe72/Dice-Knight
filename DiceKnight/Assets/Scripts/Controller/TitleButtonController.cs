@@ -1,6 +1,8 @@
 using System.Collections;
 using System.Collections.Generic;
+using UnityEditor.SearchService;
 using UnityEngine;
+using UnityEngine.SceneManagement;
 
 public class TitleButtonController : MonoBehaviour
 { 
@@ -16,8 +18,11 @@ public class TitleButtonController : MonoBehaviour
         stageListPage.SetActive(false);
     }
 
-    public void Stage(Difficulty _diff)
+    public void Stage(int _diff)
     {
-        
+        Difficulty diff = (Difficulty)_diff;
+        GameManager.Instance.LoadStageDataFromJson(diff);
+        //¾À ·Îµå
+        SceneManager.LoadScene("Stage");
     }
 }
