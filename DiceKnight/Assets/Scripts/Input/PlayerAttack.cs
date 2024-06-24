@@ -10,8 +10,6 @@ public class PlayerAttack : InputAndAction
 {
     public static PlayerAttack Instance;
 
-    private StageManager stageManager;
-
     [SerializeField] private Button okBtn;
 
     private Dice selectedDice;
@@ -51,7 +49,7 @@ public class PlayerAttack : InputAndAction
         base.Start();
     }
 
-    protected override void InputStyle()
+    protected override void InputAction()
     {
         if (!okBtn.gameObject.activeSelf) okBtn.gameObject.SetActive(true);
 
@@ -83,7 +81,7 @@ public class PlayerAttack : InputAndAction
     private void SetTarget()
     {
         selectedAttackArea = selectedDice.GetAttackArea();
-        selectedXY = stageManager.GetXYFromDice(selectedDice);
+        selectedXY = stageManager.GetXYFromPlayerDice(selectedDice);
 
         if (selectedXY == (-1, -1))
             return;
@@ -105,7 +103,7 @@ public class PlayerAttack : InputAndAction
         }
 
         //타깃이 없다면 타일의 가장 앞칸을 공격
-        if (targetXY == (-1, -1))
+        if (targetDice.Count == 0)
         {
             targetXY = (selectedXY.x + (int)selectedAttackArea[0].x, 0);
             targetTile.Add(stageManager.GetTileDataFromXY(false, targetXY));
@@ -191,7 +189,7 @@ public class PlayerAttack : InputAndAction
             {
                 //피격 데미지 출력
                 //플레이어가 혼자 남은 경우 타일 공격 가능
-                if (stageManager.GetPlayerIsSolo())
+                if (stageManager.IsPlayerSolo())
                 {
                     int tileCount = targetTile.Count;
                     //갯수만큼 적 체력 감소
@@ -201,7 +199,7 @@ public class PlayerAttack : InputAndAction
                 for (int i = 0; i < diceCount; i++)
                 {
                     //데미지 계산 공격력*주사위 눈 - 방어력/2
-                    targetDice[i].Hurt(Mathf.Clamp((selectedDice.GetDamage() * selectedDice.GetCurrentNumber().c) - (targetDice[i].GetDefense() * targetDice[i].GetCurrentNumber().c * 0.5f), 0, 30) * DebugMode.Instance.MultiplyDMG);
+                    targetDice[i].Hurt(Mathf.Clamp((selectedDice.GetDamage() * selectedDice.GetCurrentNumber().c) - (targetDice[i].GetDefense() * (7 - targetDice[i].GetCurrentNumber().c) * 0.5f), 0, 20) * DebugMode.Instance.MultiplyDMG);
                 }
                 enterHalf = false;
             }
@@ -223,8 +221,8 @@ public class PlayerAttack : InputAndAction
     /// <returns></returns>
     private IEnumerator waitDestroy()
     {
-        //주사위가 파괴되는 시간 : 2초
-        yield return new WaitForSeconds(1);
+        //주사위가 파괴되는 시간 : 0.5초
+        yield return new WaitForSeconds(0.5f);
         stageManager.NextTurn();
         yield break;
     }

@@ -200,14 +200,14 @@ public class StageManager : MonoBehaviour
         return new Vector3(0.5f * (_pos.y - _pos.x), 0.215f * (_pos.x + _pos.y), 0);
     }
 
-    public Vector3 PositionFromGridXY((int x, int y) _pos)
+    public Vector3 PlayerGridPosFromXY((int x, int y) _pos)
     {
         return playerGrid[_pos.x, _pos.y].transform.position;
     }
 
-    public Vector3 EnemyPositionFromXYEnemy()
+    public Vector3 EnemyGridPosFromXY((int x, int y) _pos)
     {
-        return new Vector3();
+        return enemyGrid[_pos.x, _pos.y].transform.position;
     }
 
     public void ShowStatUI(Dice _selectedDice)
@@ -388,7 +388,7 @@ public class StageManager : MonoBehaviour
             return enemyGrid[_xy.x, _xy.y];
     }
 
-    public (int x, int y) GetXYFromDice(Dice _dice)
+    public (int x, int y) GetXYFromPlayerDice(Dice _dice)
     {
         int count = playerDices.Keys.Count;
         List<(int x, int y)> keys = playerDices.Keys.ToList();
@@ -404,14 +404,98 @@ public class StageManager : MonoBehaviour
         return (-1, -1);
     }
 
-    public bool GetPlayerIsSolo()
+    public (int x, int y) GetXYFromEnemyDice(Dice _dice)
+    {
+        int count = enemyDices.Keys.Count;
+        List<(int x, int y)> keys = enemyDices.Keys.ToList();
+
+        for (int i = 0; i < count; i++)
+        {
+            if (enemyDices[keys[i]] == _dice)
+            {
+                return keys[i];
+            }
+        }
+
+        return (-1, -1);
+    }
+
+    public MoveDirection GetDirectionFromXY((int x, int y) from, (int x, int y) to)
+    {
+        if (from.x < to.x)
+            return MoveDirection.Left;
+        else if (from.x > to.x)
+            return MoveDirection.Right;
+
+        if (from.y < to.y)
+            return MoveDirection.Up;
+        else if (from.y > to.y)
+            return MoveDirection.Down;
+
+        return MoveDirection.Stay;
+    }
+
+    public bool IsPlayerSolo()
     {
         return isPlayerSolo;
     }
 
-    public bool GetEnemyIsSolo()
+    public bool IsEnemySolo()
     {
         return isPlayerSolo;
+    }
+
+    public Dictionary<(int x, int y), Dice> GetEnemiesOnBoard()
+    {
+        return enemyDices;
+    }
+
+    public Dictionary<(int x, int y), Dice> GetPlayersOnBoard()
+    {
+        return playerDices;
+    }
+
+    public bool HavePlayerInX(int _x)
+    {
+        List<(int x, int y)> keys = playerDices.Keys.ToList<(int x, int y)>();
+        for (int i = 0; i < playerDices.Keys.Count; i++)
+        {
+            if (keys[i].x == _x)
+                return true;
+        }
+        return false;
+    }
+
+    public bool HaveEnemyInX(int _x)
+    {
+        List<(int x, int y)> keys = enemyDices.Keys.ToList<(int x, int y)>();
+        for (int i = 0; i < enemyDices.Keys.Count; i++)
+        {
+            if (keys[i].x == _x)
+                return true;
+        }
+        return false;
+    }
+
+    public (int c, int r, int b) MoveTo(MoveDirection _dir, (int c, int r, int b) _nums)
+    {
+        switch (_dir)
+        {
+            case MoveDirection.Up:
+                _nums = (_nums.b, _nums.r, 7 - _nums.c);
+                break;
+            case MoveDirection.Down:
+                _nums = (7 - _nums.b, _nums.r, _nums.c);
+                break;
+            case MoveDirection.Left:
+                _nums = (_nums.r, 7 - _nums.c, _nums.b);
+                break;
+            case MoveDirection.Right:
+                _nums = (7 - _nums.r, _nums.c, _nums.b);
+                break;
+        }
+
+        return _nums;
     }
 
     public void BreakDice(Dice _dice)

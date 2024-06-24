@@ -10,7 +10,6 @@ public class PlayerSet : InputAndAction
 {
     public static PlayerSet Instance;
 
-    private StageManager stageManager;
     private PlayerDiceManager playerDiceManager;
 
     [SerializeField] private GameObject tray;
@@ -57,7 +56,7 @@ public class PlayerSet : InputAndAction
         inputHolder = false;
     }
 
-    protected override void InputStyle()
+    protected override void InputAction()
     {
         if (Input.GetMouseButtonDown(0))
         {

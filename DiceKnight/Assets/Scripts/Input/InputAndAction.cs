@@ -6,6 +6,8 @@ using UnityEngine.UI;
 
 public class InputAndAction : MonoBehaviour
 {
+    protected StageManager stageManager;
+
     protected string turnName = "";
     private bool turnEnter;
 
@@ -29,6 +31,8 @@ public class InputAndAction : MonoBehaviour
         preActionHolder = false;
         inputHolder = true;
         actionHolder = true;
+
+        stageManager = StageManager.Instance;
     }
 
     protected virtual void Update()
@@ -37,7 +41,7 @@ public class InputAndAction : MonoBehaviour
             PreAction();
         
         if (!inputHolder && actionHolder)
-            InputStyle();
+            InputAction();
 
         if (!actionHolder)
             Action();
@@ -78,7 +82,7 @@ public class InputAndAction : MonoBehaviour
     /// <summary>
     /// 조건 만족시 inputHolder = true;  actionHolder = false;
     /// </summary>
-    protected virtual void InputStyle()
+    protected virtual void InputAction()
     {
 
     }

@@ -1,10 +1,11 @@
 
 public enum MoveDirection
 {
-    Down,
     Up,
+    Down,
     Left,
     Right,
+    Stay,
 }
 
 public enum Turn
@@ -15,14 +16,6 @@ public enum Turn
     EnemyMove,
     EnemyAttack,
     Count,
-}
-
-public enum RollingTo
-{
-    Up,
-    Down,
-    Left,
-    Right,
 }
 
 public enum DiceType

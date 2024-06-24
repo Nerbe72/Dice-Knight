@@ -736,7 +736,7 @@ GameObject:
   - component: {fileID: 4022466464879168856}
   - component: {fileID: 5640791027037061196}
   m_Layer: 7
-  m_Name: DiceNumber Front
+  m_Name: DiceNumber Bottom
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0

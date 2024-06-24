@@ -69,10 +69,12 @@ public class PlayerMove : InputAndAction
 
     protected override void Action()
     {
+        //선택한 좌표 갯수만큼 진행
         if (nextMovePosition.Count <= movePointer)
         {
             //턴 종료
-            stageManager.AddDiceOnBoard(stageManager.GetTileFromXY(nextMovePosition[nextMovePosition.Count - 1]), selectedDice);
+            if (selectedDice != null && nextMovePosition.Count != 0)
+                stageManager.AddDiceOnBoard(stageManager.GetTileFromXY(nextMovePosition[nextMovePosition.Count - 1]), selectedDice);
             PlayerDiceManager.Instance.UnSelectDice();
             StageManager.Instance.NextTurn();
             return;
@@ -175,7 +177,7 @@ public class PlayerMove : InputAndAction
         selectedDice.RunAnimation(movingTo[movePointer]);
         float time = 0;
         Vector3 fromPos = selectedDice.transform.position;
-        Vector3 targetPos = stageManager.PositionFromGridXY(nextMovePosition[movePointer]);
+        Vector3 targetPos = stageManager.PlayerGridPosFromXY(nextMovePosition[movePointer]);
 
         while (true)
         {
@@ -193,7 +195,6 @@ public class PlayerMove : InputAndAction
         selectedDice.SetNumberUI();
         checkMovingCo = null;
         movePointer++;
-        //이동이 끝나면 해당 위치의 xy로 주사위를 이동(다시 집어넣음)
         yield break;
     }
 }
