@@ -29,6 +29,8 @@ public class GameManager : MonoBehaviour
         DontDestroyOnLoad(this);
 
         LoadOwnDiceList();
+
+        Application.targetFrameRate = 60;
     }
     
     private void AddDice()

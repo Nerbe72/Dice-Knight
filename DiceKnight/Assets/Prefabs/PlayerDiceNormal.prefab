@@ -432,6 +432,8 @@ MonoBehaviour:
   Movement: 2
   AttackArea:
   - {x: 0, y: 0}
+  rollingSound: {fileID: 0}
+  attackSound: {fileID: 0}
   Debuffed: 
   SkillEnabled: 0
 --- !u!61 &7809918562118967218
@@ -641,6 +643,7 @@ GameObject:
   - component: {fileID: 2332238057501666437}
   - component: {fileID: 6177272606306404830}
   - component: {fileID: 4433790555779695285}
+  - component: {fileID: 2116780127792295529}
   m_Layer: 7
   m_Name: DiceStyle
   m_TagString: Untagged
@@ -736,6 +739,18 @@ SpriteRenderer:
   m_WasSpriteAssigned: 1
   m_MaskInteraction: 0
   m_SpriteSortPoint: 0
+--- !u!114 &2116780127792295529
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 4625205992820188899}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: da0e220f433ad3942ac1d670eca18145, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
 --- !u!1 &6093161236293089550
 GameObject:
   m_ObjectHideFlags: 0

@@ -9,6 +9,12 @@ public class SoundManager : MonoBehaviour
 
     private List<AudioSource> audioSources = new List<AudioSource>();
 
+    public class AudioData
+    {
+        public AudioClip audio;
+        public float volume;
+    }
+
     [SerializeField] private List<AudioClip> effectClips;
     [SerializeField] private List<AudioClip> backgroundClips;
 
