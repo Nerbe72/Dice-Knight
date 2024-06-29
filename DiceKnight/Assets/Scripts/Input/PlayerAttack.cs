@@ -36,7 +36,8 @@ public class PlayerAttack : InputAndAction
         }
 
         base.Awake();
-        InputManager.TurnActionList.Add(Turn.PlayerAttack, this);
+        if (!InputManager.TurnActionList.ContainsKey(Turn.PlayerAttack))
+            InputManager.TurnActionList.Add(Turn.PlayerAttack, this);
 
         turnName = "PlayerAttack";
 
@@ -122,6 +123,9 @@ public class PlayerAttack : InputAndAction
                 targetDice.Add(stageManager.GetDiceFromXY(false, attackPos));
         }
 
+        //가장 뒷 주사위를 선택해 null로 타일이 추가되는 경우를 제거
+        targetTile.RemoveAll(x => x == null);
+
         //공격 타깃 시각적 표시
         BlinkTargets();
     }
@@ -129,7 +133,11 @@ public class PlayerAttack : InputAndAction
     private void DoAttack()
     {
         //공격 대상 지정 안됨 체크
-        if (selectedDice == null) return;
+        if (selectedDice == null)
+        {
+            stageManager.ShowWarn("공격할 주사위를 선택해주세요");
+            return;
+        }
 
         okBtn.gameObject.SetActive(false);
         inputHolder = true;

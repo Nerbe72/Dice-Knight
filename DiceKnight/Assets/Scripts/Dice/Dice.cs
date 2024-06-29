@@ -358,19 +358,19 @@ public class Dice : MonoBehaviour
         //애니메이션 재생
         //애니메이션은 0.2초 내로 구성
         float time = 0;
+        StageManager.Instance.BreakDice(this);
+
         while (true)
         {
             time += Time.deltaTime * 10;
 
             yield return new WaitForEndOfFrame();
 
-            if (time >= 1f)
-            {
-                break;
-            }
+            if (time >= 1f) break;
         }
 
-        StageManager.Instance.BreakDice(this);
+        Destroy(gameObject);
+        Destroy(this);
         isHolding = false;
         yield break;
     }

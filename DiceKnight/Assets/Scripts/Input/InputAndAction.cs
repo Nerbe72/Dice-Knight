@@ -9,7 +9,6 @@ public class InputAndAction : MonoBehaviour
     protected StageManager stageManager;
 
     protected string turnName = "";
-    private bool turnEnter;
 
     //홀더가 true인 경우 스킵
     protected bool preActionHolder;
@@ -18,7 +17,7 @@ public class InputAndAction : MonoBehaviour
 
     protected virtual void Awake()
     {
-        turnEnter = false;
+
     }
 
     /// <summary>
@@ -27,11 +26,7 @@ public class InputAndAction : MonoBehaviour
     protected virtual void Start()
     {
         enabled = false;
-        turnEnter = true;
-        preActionHolder = false;
-        inputHolder = true;
-        actionHolder = true;
-
+        InitStageHolders();
         stageManager = StageManager.Instance;
     }
 
@@ -54,10 +49,8 @@ public class InputAndAction : MonoBehaviour
     {
         if (Application.isPlaying == false) return;
 
-        if (turnEnter)
-        {
-            ShowTurnName(StageManager.Instance.TurnNamePanel, StageManager.Instance.TurnNameText);
-        }
+        ShowTurnName(StageManager.Instance.TurnNamePanel, StageManager.Instance.TurnNameText);
+        InitStageHolders();
     }
 
 
@@ -66,6 +59,13 @@ public class InputAndAction : MonoBehaviour
     {
         _turnText.text = turnName;
         _namePanel.GetComponent<Animator>().SetTrigger("ShowTurn"); //todo
+    }
+
+    protected virtual void InitStageHolders()
+    {
+        preActionHolder = false;
+        inputHolder = true;
+        actionHolder = true;
     }
 
     //턴 시작시 곧 바로 작동. preactionholder가 on인 경우만 동작

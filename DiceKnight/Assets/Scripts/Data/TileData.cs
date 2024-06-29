@@ -45,6 +45,12 @@ public class TileData : MonoBehaviour
         spriteRenderer.color = Color.white;
     }
 
+    //게임 종료시 흩어지는 효과
+    public void Shatter(Vector3 _direction)
+    {
+        StartCoroutine(shatterTileCo(_direction));
+    }
+
     private IEnumerator targetedBlinkCo()
     {
         float time = 0f;
@@ -73,6 +79,28 @@ public class TileData : MonoBehaviour
 
         spriteRenderer.color = Color.white;
         targetedCo = null;
+        yield break;
+    }
+
+    //게임 종료시 타일 파괴
+    private IEnumerator shatterTileCo(Vector3 _direction)
+    {
+        float time = 0;
+        Vector3 startPos = transform.position;
+
+        while (true)
+        {
+            time += Time.deltaTime * 0.5f;
+
+            transform.position = Vector3.Lerp(startPos, _direction * 100, time);
+
+            if (time >= 1f) break;
+
+            yield return new WaitForEndOfFrame();
+        }
+
+        transform.position = _direction * 100;
+
         yield break;
     }
 }

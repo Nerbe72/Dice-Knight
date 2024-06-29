@@ -11,6 +11,9 @@ public class EnemyMove : InputAndAction
     #region SELECT
     private Dictionary<(int x, int y), Dice> dices;
     private Dictionary<(int x, int y), Dice> players;
+    /// <summary>
+    /// 타깃을 가지지 못한 경우를 저장함 (EnemyAttack의 것과 반대)
+    /// </summary>
     private List<Dice> tempSelectedDices = new List<Dice>();
     private Dice selectedDice = null;
 
@@ -37,7 +40,9 @@ public class EnemyMove : InputAndAction
         }
 
         base.Awake();
-        InputManager.TurnActionList.Add(Turn.EnemyMove, this);
+
+        if (!InputManager.TurnActionList.ContainsKey(Turn.EnemyMove))
+            InputManager.TurnActionList.Add(Turn.EnemyMove, this);
 
         turnName = "EnemyMove";
     }
@@ -59,13 +64,16 @@ public class EnemyMove : InputAndAction
         if (selectedDice == null)
             selectedDice = dices.Values.ToList<Dice>()[Random.Range(0, dices.Count)];
 
-        //경로 설정
-        selectedPath = SetBestPath(new PathData(selectedDice.GetNumbers()), MoveDirection.Stay, selectedDice.GetMovement());
+        selectedPath.num = selectedDice.GetNumbers();
+        selectedPath.path.Add(stageManager.GetXYFromEnemyDice(selectedDice));
 
+        ////경로 설정
+        //selectedPath = SearchBestPath(selectedPath, MoveDirection.Stay, selectedDice.GetMovement(), true);
+        selectedPath = SearchBestPathBFS(selectedPath, selectedDice.GetMovement());
 
 
         //경로를 따라 이동 방향 및 숫자 설정
-        //nextmoveNumber, path는 본인부터, movingTo는 다음 이동방향부터
+        //nextmoveNumber, path는 본인부터, movingTo는 다음 이동방향부터 저장
         nextMoveNumber.Add(selectedDice.GetNumbers());
         int pathCount = selectedPath.path.Count;
         for (int i = 0; i < pathCount - 1; i++)
@@ -86,7 +94,7 @@ public class EnemyMove : InputAndAction
         {
             //턴 종료
             if (selectedDice != null)
-                stageManager.AddDiceOnBoard(stageManager.GetTileFromXY(selectedPath.path[selectedPath.path.Count - 1]), selectedDice);
+                stageManager.AddEnemyDiceOnBoard(stageManager.GetTileDataFromXY(false, selectedPath.path[selectedPath.path.Count - 1]), selectedDice);
             PlayerDiceManager.Instance.UnSelectDice();
             StageManager.Instance.NextTurn();
             return;
@@ -105,10 +113,21 @@ public class EnemyMove : InputAndAction
         players = StageManager.Instance.GetPlayersOnBoard();
 
         visited = new bool[stageManager.GridXSize, stageManager.GridYSize];
+        selectedPath = new PathData((0, 0, 0));
         tempSelectedDices.Clear();
-        selectedDice = null;
+        nextMoveNumber.Clear();
+        movingChecker.Clear();
         movingTo.Clear();
+        selectedDice = null;
         movePointer = 0;
+
+        for (int i = 0; i < stageManager.GridXSize; i++)
+        {
+            for (int j = 0; j < stageManager.GridYSize; j++)
+            {
+                visited[i, j] = false;
+            }
+        }
 
         System.GC.Collect();
     }
@@ -124,30 +143,18 @@ public class EnemyMove : InputAndAction
         {
             for(int p = 0; p < playerCount; p++)
             {
+                //타깃이 없는 경우를 저장
                 if (diceXs[e].x != playerXs[p].x)
                     tempSelectedDices.Add(dices[diceXs[e]]);
             }
         }
 
         
+        
         if (tempSelectedDices.Count == 0)
-        {
-            //모든 주사위가 타깃을 가진 경우
-            TargetedAll();
-        }
+            TargetedAll(); //모든 주사위가 타깃을 가진 경우
         else
-        {
-            if (tempSelectedDices.Count == enemyCount)
-            {
-                //모든 주사위가 타깃을 가지지 않은 경우
-                TargetedNoting();
-            }
-            else
-            {
-                //반반
-                TargetedSome();
-            }
-        }
+            TargetedSome(); //그 외
     }
 
     //눈이 가장 낮은 대상을 선착순 선택
@@ -166,7 +173,7 @@ public class EnemyMove : InputAndAction
     }
 
     //플레이어 주사위와 가장 가까운 대상을 선착순 선택
-    private void TargetedNoting()
+    private void TargetedSome()
     {
         selectedDice = tempSelectedDices[0];
 
@@ -192,82 +199,179 @@ public class EnemyMove : InputAndAction
         }
     }
 
-    //tempselectedDices중 눈이 가장 낮은 주사위를 선착순 선택
-    private void TargetedSome()
+    private PathData SearchBestPathBFS(PathData _start, int _movement)
     {
-        for (int i = 1; i < tempSelectedDices.Count; i++)
+        Queue<PathData> queue = new Queue<PathData>();
+        queue.Enqueue(_start);
+
+        //본인을 bestPath로 설정
+        PathData bestPath = _start;
+
+        while (queue.Count > 0)
         {
-            if (selectedDice.GetCurrentNumber().c > tempSelectedDices[i].GetCurrentNumber().c)
+            PathData currentPath = queue.Dequeue();
+            (int x, int y) latestPos = currentPath.LatestPath();
+
+            //주사위가 이미 있는 위치로 이동한 경우 스킵
+            if (currentPath.path.Count > 1 && stageManager.IsHaveDice(false, latestPos)) continue;
+
+            //이미 들어있는지 체크
+            if (currentPath.path.Count > 1)
             {
-                selectedDice = tempSelectedDices[i];
+                bool alreadySearched = false;
+                for (int i = 0; i < currentPath.path.Count - 2; i++)
+                {
+                    if (currentPath.path[i] == latestPos)
+                    {
+                        alreadySearched = true;
+                        break;
+                    }
+                }
+                if (alreadySearched) continue;
             }
-        }
-    }
 
-    //재귀함수로 targeted 상태에 숫자가 높은 경로로 덮어쓰기
-    private PathData SetBestPath(PathData _path, MoveDirection _dir, int _movement)
-     {
-        if (_movement == 0)
-            return _path;
+            // x, y값이 범위를 벗어난 경우 스킵
+            if (latestPos.x < 0 || latestPos.x >= stageManager.GridXSize || latestPos.y < 0 || latestPos.y >= stageManager.GridYSize) continue;
 
-        PathData tempPath = _path;
+            // 이미 방문한 경우 스킵
+            if (visited[latestPos.x, latestPos.y]) continue;
 
-        if (tempPath.path.Count == 0)
-            tempPath.path.Add(stageManager.GetXYFromEnemyDice(selectedDice));
+            // 방문 표시
+            visited[latestPos.x, latestPos.y] = true;
 
-        visited[_path.LatestPath().x, _path.LatestPath().y] = true;
+            // 경로가 1인 경우 강제로 targeted를 false로 설정하여 이동을 유도함.
+            if (currentPath.path.Count != 1)
+                currentPath.targeted = stageManager.HavePlayerInX(latestPos.x);
 
-        (int x, int y) latestPath = tempPath.LatestPath();
-        if (latestPath.x < 0 || latestPath.x >= stageManager.GridXSize ||
-            latestPath.y < 0 || latestPath.y >= stageManager.GridYSize)
-            return tempPath;
-
-        tempPath.targeted = stageManager.HavePlayerInX(tempPath.LatestPath().x);
-
-        PathData bestPath = tempPath;
-        PathData[] paths = new PathData[4];
-
-        //타깃이 잡힌 경우 더 이상 좌우로는 이동하지 않음
-        if (!tempPath.targeted)
-        {
-            paths[2] = SetBestPath(CreateNewPath(tempPath, MoveDirection.Left), MoveDirection.Left, _movement - 1);
-            paths[3] = SetBestPath(CreateNewPath(tempPath, MoveDirection.Right), MoveDirection.Right, _movement - 1);
-        }
-
-        paths[0] = SetBestPath(CreateNewPath(tempPath, MoveDirection.Up), MoveDirection.Up, _movement - 1);
-        paths[1] = SetBestPath(CreateNewPath(tempPath, MoveDirection.Down), MoveDirection.Down, _movement - 1);
-
-        for (int i = 0; i < 4; i++)
-        {
-            if (paths[i].targeted && paths[i].num.c > bestPath.num.c)
-                bestPath = paths[i];
-        }
-
-        if (!bestPath.targeted)
-        {
-            foreach (var path in paths)
+            // 가장 높은 숫자를 가진 경로 선택
+            if (currentPath.targeted)
             {
-                if (path.num.c > bestPath.num.c)
-                    bestPath = path;
+                if (!bestPath.targeted || (currentPath.targeted && currentPath.num.c > bestPath.num.c))
+                {
+                    bestPath = currentPath;
+                }
             }
+            else
+            {
+                if (!bestPath.targeted && currentPath.num.c > bestPath.num.c)
+                {
+                    bestPath = currentPath;
+                }
+            }
+
+            // 최대 이동 횟수에 도달하지 않았으면 다음 이동을 큐에 추가
+            if (currentPath.path.Count - 1 < _movement)
+            {
+                queue.Enqueue(addPath(currentPath, MoveDirection.Left));
+                queue.Enqueue(addPath(currentPath, MoveDirection.Right));
+                queue.Enqueue(addPath(currentPath, MoveDirection.Up));
+                queue.Enqueue(addPath(currentPath, MoveDirection.Down));
+            }
+
+            visited[latestPos.x, latestPos.y] = false;
         }
 
         return bestPath;
     }
 
-    private PathData CreateNewPath(PathData _path, MoveDirection _dir)
+    //(재귀) targeted 상태에 숫자가 높은 경로로 덮어쓰기
+    //private PathData SearchBestPath(PathData _path, MoveDirection _dir, int _movement, bool _isFirstMove)
+    // {
+    //    //재귀 탈출 트리거
+    //    if (_movement == 0)
+    //    {
+    //        _path.path.RemoveAt(_path.path.Count - 1);
+    //        return _path;
+    //    }
+
+    //    //이미 주사위가 있는 위치로 이동한 경우 제거 후 반환
+    //    if (_path.path.Count > 1 && stageManager.IsHaveDice(false, _path.LatestPath()))
+    //    {
+    //        _path.path.RemoveAt(_path.path.Count - 1);
+    //        return _path;
+    //    }
+
+    //    //이미 배열에 탐색한 위치가 있는 경우 제거 후 반환
+    //    if (_path.path.Count > 2)
+    //    {
+    //        for (int i = 0;  i < _path.path.Count - 2; i++)
+    //        {
+    //            if(_path.path[i] == _path.path[_path.path.Count - 1])
+    //            {
+    //                _path.path.RemoveAt(_path.path.Count - 1);
+    //                return _path;
+    //            }    
+    //        }
+    //    }
+
+    //    //x, y값이 범위를 벗어난 경우 제거 후 반환
+    //    if (_path.LatestPath().x < 0 || _path.LatestPath().x >= stageManager.GridXSize ||
+    //        _path.LatestPath().y < 0 || _path.LatestPath().y >= stageManager.GridYSize)
+    //    {
+    //        _path.path.RemoveAt(_path.path.Count - 1);
+    //        return _path;
+    //    }
+
+    //    //이미 방문한 경우 제거 후 반환
+    //    if (visited[_path.LatestPath().x, _path.LatestPath().y])
+    //    {
+    //        _path.path.RemoveAt(_path.path.Count - 1);
+    //        return _path;
+    //    }
+
+    //    //방문 표시
+    //    visited[_path.LatestPath().x, _path.LatestPath().y] = true;
+
+    //    //path가 1인경우 강제로 targeted를 false로 설정하여 이동을 유도함.
+    //    _path.targeted = stageManager.HavePlayerInX(_path.LatestPath().x);
+
+    //    PathData bestPath = _path;
+    //    PathData[] paths = new PathData[4];
+    //    paths[1] = SearchBestPath(CreateNewPath(_path, MoveDirection.Up), MoveDirection.Up, _movement - 1, false);
+    //    paths[2] = SearchBestPath(CreateNewPath(_path, MoveDirection.Down), MoveDirection.Down, _movement - 1, false);
+    //    paths[3] = SearchBestPath(CreateNewPath(_path, MoveDirection.Left), MoveDirection.Left, _movement - 1, false);
+    //    paths[4] = SearchBestPath(CreateNewPath(_path, MoveDirection.Right), MoveDirection.Right, _movement - 1, false);
+
+    //    for (int i = 0; i < 4; i++)
+    //    {
+    //        if (paths[i].targeted && paths[i].num.c > bestPath.num.c)
+    //            bestPath = paths[i];
+    //    }
+
+    //    if (!bestPath.targeted)
+    //    {
+    //        for (int i = 0; i < 4; i++)
+    //        {
+    //            if (paths[i].num.c > bestPath.num.c)
+    //                bestPath = paths[i];
+    //        }
+    //    }
+
+    //    for (int i = 0; i < stageManager.GridXSize; i++)
+    //    {
+    //        for (int j = 0;  j < stageManager.GridYSize; j++)
+    //        {
+    //            visited[i, j] = false;
+    //        }
+    //    }
+
+    //    visited[_path.path[0].x, _path.path[0].y] = true;
+
+    //    return bestPath;
+    //}
+
+    private PathData addPath(PathData _path, MoveDirection _dir)
     {
         PathData newPath = new PathData(_path.num, _path.targeted);
         newPath.path = new List<(int x, int y)>(_path.path);
-        (int x, int y) currentPos = newPath.LatestPath();
-        (int x, int y) newPos = moveToNewPosition(currentPos, _dir);
+        (int x, int y) newPos = moveTo(newPath.LatestPath(), _dir);
 
         newPath.path.Add(newPos);
         newPath.num = stageManager.MoveTo(_dir, newPath.num);
         return newPath;
     }
 
-    private (int x, int y) moveToNewPosition((int x, int y) _xy, MoveDirection _dir)
+    private (int x, int y) moveTo((int x, int y) _xy, MoveDirection _dir)
     {
         switch (_dir)
         {

@@ -10,13 +10,9 @@ public class PlayerMove : InputAndAction
 {
     public static PlayerMove Instance;
 
-    private StageManager stageManager;
-
     [SerializeField] private GameObject actionBar;
     [SerializeField] private Button resetBtn;
     [SerializeField] private Button okBtn;
-
-    private int plusPos = 96+16;
 
     private Dice selectedDice;
     private List<(int x, int y)> nextMovePosition = new List<(int x, int y)>();
@@ -37,7 +33,9 @@ public class PlayerMove : InputAndAction
             return;
         }
         base.Awake();
-        InputManager.TurnActionList.Add(Turn.PlayerMove, this);
+
+        if (!InputManager.TurnActionList.ContainsKey(Turn.PlayerMove))
+            InputManager.TurnActionList.Add(Turn.PlayerMove, this);
 
         turnName = "PlayerMove";
 
@@ -45,38 +43,21 @@ public class PlayerMove : InputAndAction
         resetBtn.onClick.AddListener(ClickReset);
     }
 
-    protected override void Start()
-    {
-        stageManager = StageManager.Instance;
-        base.Start();
-    }
-
-    
-    protected override void OnEnable()
-    {
-        movePointer = 0;
-        base.OnEnable();
-    }
-
     protected override void PreAction()
     {
-        actionBar.SetActive(true);
-        stageManager.SetContollerField();
-        stageManager.OpenController();
-        preActionHolder = true;
-        inputHolder = false;
+        base.PreAction();
+        Init();
     }
 
     protected override void Action()
     {
-        //선택한 좌표 갯수만큼 진행
+        //선택한 좌표 갯수만큼 대기 후 턴 종료
         if (nextMovePosition.Count <= movePointer)
         {
-            //턴 종료
             if (selectedDice != null && nextMovePosition.Count != 0)
-                stageManager.AddDiceOnBoard(stageManager.GetTileFromXY(nextMovePosition[nextMovePosition.Count - 1]), selectedDice);
+                stageManager.AddPlayerDiceOnBoard(stageManager.GetTileDataFromXY(true, nextMovePosition[nextMovePosition.Count - 1]), selectedDice);
             PlayerDiceManager.Instance.UnSelectDice();
-            StageManager.Instance.NextTurn();
+            stageManager.NextTurn();
             return;
         }
 
@@ -88,6 +69,18 @@ public class PlayerMove : InputAndAction
         }
     }
 
+    private void Init()
+    {
+        movePointer = 0;
+        movingChecker.Clear();nextMoveNumber.Clear();
+        nextMovePosition.Clear();
+        movingTo.Clear();
+
+        actionBar.SetActive(true);
+        stageManager.SetContollerField();
+        stageManager.OpenController();
+    }
+
     public (int x, int y) GetLatestMove()
     {
         if (nextMovePosition.Count == 0)
@@ -96,7 +89,9 @@ public class PlayerMove : InputAndAction
         return nextMovePosition[nextMovePosition.Count - 1];
     }
 
-    //InputStyle대신 동작
+    /// <summary>
+    /// ClickOK, ClickReset함수와 ControllerDice스크립트가 InputStyle대신 동작
+    /// </summary>
     private void ClickOK()
     {
         selectedDice = PlayerDiceManager.Instance.SelectedDice();

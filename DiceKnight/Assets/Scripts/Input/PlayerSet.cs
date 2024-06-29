@@ -13,6 +13,7 @@ public class PlayerSet : InputAndAction
     private PlayerDiceManager playerDiceManager;
 
     [SerializeField] private GameObject tray;
+    [SerializeField] private GameObject recallTray;
     [SerializeField] private Button nextBtn;
 
     private delegate Dice DelegateSelectedDice();
@@ -32,7 +33,9 @@ public class PlayerSet : InputAndAction
         }
 
         base.Awake();
-        InputManager.TurnActionList.Add(Turn.PlayerSet, this);
+
+        if (!InputManager.TurnActionList.ContainsKey(Turn.PlayerSet))
+            InputManager.TurnActionList.Add(Turn.PlayerSet, this);
 
         turnName = "PlayerSet";
         nextBtn.onClick.AddListener(ClickEnd);
@@ -51,6 +54,7 @@ public class PlayerSet : InputAndAction
     {
         stageManager.CloseController();
         nextBtn.gameObject.SetActive(true);
+        recallTray.SetActive(true);
 
         preActionHolder = true;
         inputHolder = false;
@@ -101,7 +105,7 @@ public class PlayerSet : InputAndAction
         {
             TileData tileData = hit.collider.GetComponent<TileData>();
 
-            if (!stageManager.AddDiceOnBoard(tileData, selectedDice())) return;
+            if (!stageManager.AddPlayerDiceOnBoard(tileData, selectedDice())) return;
 
             Vector3 tilePos = hit.collider.transform.position;
             selectedDice().transform.parent = null;
@@ -126,6 +130,7 @@ public class PlayerSet : InputAndAction
         {
             stageManager.NextTurn();
             nextBtn.gameObject.SetActive(false);
+            recallTray.SetActive(false);
             this.enabled = false;
         }
     }

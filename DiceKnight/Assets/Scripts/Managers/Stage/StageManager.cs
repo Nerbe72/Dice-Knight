@@ -46,6 +46,7 @@ public class StageManager : MonoBehaviour
     [SerializeField] private Image attackAreaImage;
 
     [Header("게임UI")]
+    [SerializeField] private TMP_Text warnText;
     [SerializeField] private List<GameObject> tilePrefabs;
     public GameObject TurnNamePanel;
     public TMP_Text TurnNameText;
@@ -60,10 +61,13 @@ public class StageManager : MonoBehaviour
     [SerializeField] private GameObject controllerPrefab;
     private ControllerDice[,] controllerGrid;
 
+    private Coroutine warnCo;
+    Color warnColor = new Color(255, 102, 102, 255);
+
     //[RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.BeforeSceneLoad)]
     //private static void asdf()
     //{
-       
+
     //}
 
     private void Awake()
@@ -99,7 +103,7 @@ public class StageManager : MonoBehaviour
         currentCost = 0;
         currentTurn = Turn.PlayerSet;
 
-
+        InputManager.TurnActionList.Clear();
         CloseStatUI();
     }
 
@@ -150,15 +154,13 @@ public class StageManager : MonoBehaviour
             {
                 GameObject obj = Instantiate(gameManager.GetEnemyDiceAtType(currentStageData.EnemyDiceSet[key]));
                 (int x, int y) enemyPos = (gameManager.XYFromVec2(key));
-                AddEnemyOnBoard(enemyPos, obj.GetComponent<Dice>());
+                AddEnemyWithStart(enemyPos, obj.GetComponent<Dice>());
             } catch (ArgumentException) { }
         }
-
-
     }
 
     //플레이어 주사위를 보드에 추가
-    public bool AddDiceOnBoard(TileData _tile, Dice _dice)
+    public bool AddPlayerDiceOnBoard(TileData _tile, Dice _dice)
     {
         //주사위가 이미 보드에 있거나, 코스트/주사위 갯수에 제한되지 않는지 확인
         if (playerDices.Values.Contains(_dice) || SideTrayController.Instance.SetCostDiceCounter(true, _dice))
@@ -187,17 +189,46 @@ public class StageManager : MonoBehaviour
         return false;
     }
 
-    public void AddEnemyOnBoard((int x, int y) _pos, Dice _dice)
+    //적 주사위를 보드에 추가
+    public bool AddEnemyDiceOnBoard(TileData _tile, Dice _dice)
+    {
+        //주사위가 이미 보드에 있거나, 코스트/주사위 갯수에 제한되지 않는지 확인
+        if (enemyDices.Values.Contains(_dice))
+        {
+            //주사위가 이미 보드에 있는경우 제거
+            foreach ((int x, int y) key in enemyDices.Keys)
+            {
+                if (enemyDices[key] == _dice)
+                {
+                    enemyDices.Remove(key);
+                    break;
+                }
+            }
+
+            //좌표를 추가하고 주사위를 그 위치에 추가
+            if (!enemyDices.ContainsKey(_tile.GetXY()))
+                enemyDices.Add(_tile.GetXY(), _dice);
+            else
+                enemyDices[_tile.GetXY()] = _dice;
+
+            _dice.SetNumberUI();
+
+            return true;
+        }
+
+        return false;
+    }
+
+    public void AddEnemyWithStart((int x, int y) _pos, Dice _dice)
     {
         enemyDices.Add(_pos, _dice);
         _dice.SetRandomNumber();
         _dice.transform.position = PositionFromXY(_pos);
     }
 
-
     public Vector3 PositionFromXY((int x, int y) _pos)
     {
-        return new Vector3(0.5f * (_pos.y - _pos.x), 0.215f * (_pos.x + _pos.y), 0);
+        return new Vector3(0.5f * (_pos.y - _pos.x), 0.215f * (_pos.x + _pos.y), (_pos.x + _pos.y));
     }
 
     public Vector3 PlayerGridPosFromXY((int x, int y) _pos)
@@ -240,10 +271,9 @@ public class StageManager : MonoBehaviour
 
     public bool HideList(GameObject _sideTray)
     {
-        if (GetPlayerOnBoardCount() != currentStageData.DiceLimit)
+        if (GetPlayerOnBoardCount() == 0)
         {
-            //갯수가 부족하면 재차 질문하는 창을 띄움
-            print("배치하지 않음");
+            ShowWarn("하나 이상의 주사위를 배치해주세요");
             return false;
         }
 
@@ -265,7 +295,7 @@ public class StageManager : MonoBehaviour
                     controllerGrid[i, j] = obj.GetComponent<ControllerDice>();
                 }
                 
-                controllerGrid[i, j].Init(i, j);
+                controllerGrid[i, j].InitControllerTile(i, j);
             }
         }
 
@@ -289,11 +319,6 @@ public class StageManager : MonoBehaviour
         controllerBar.SetActive(false);
     }
 
-    public void RedrawControllerField()
-    {
-
-    }
-
     public void CloseStatUI()
     {
         statIndicator.SetActive(false);
@@ -302,6 +327,16 @@ public class StageManager : MonoBehaviour
     public Turn GetTurn()
     {
         return currentTurn;
+    }
+
+    public bool IsPlayerAlive()
+    {
+        return (playerDices.Count != 0);
+    }
+
+    public bool IsEnemyAlive()
+    {
+        return (enemyDices.Count != 0);
     }
 
     public void NextTurn()
@@ -351,16 +386,6 @@ public class StageManager : MonoBehaviour
         return playerDices.Count;
     }
 
-    public TileData GetTileFromXY((int x, int y) _xy)
-    {
-        return playerGrid[_xy.x, _xy.y];
-    }
-
-    public (int x, int y) GetGridSize()
-    {
-        return (GridXSize, GridYSize);
-    }
-
     public Dice GetDiceFromXY(bool _isPlayers, (int x, int y) _xy)
     {
         if (_isPlayers)
@@ -382,6 +407,9 @@ public class StageManager : MonoBehaviour
 
     public TileData GetTileDataFromXY(bool _isPlayers, (int x, int y) _xy)
     {
+        if (_xy.x < 0 || _xy.x >= GridXSize || _xy.y < 0 || _xy.y >= GridYSize)
+            return null;
+
         if (_isPlayers)
             return playerGrid[_xy.x, _xy.y];
         else
@@ -433,6 +461,14 @@ public class StageManager : MonoBehaviour
             return MoveDirection.Down;
 
         return MoveDirection.Stay;
+    }
+
+    public bool IsHaveDice(bool isPlayers, (int x, int y) _pos)
+    {
+        if (isPlayers)
+            return playerDices.Keys.ToList<(int x, int y)>().Contains(_pos);
+        else
+            return enemyDices.Keys.ToList<(int x, int y)>().Contains(_pos);
     }
 
     public bool IsPlayerSolo()
@@ -511,18 +547,42 @@ public class StageManager : MonoBehaviour
             }
         }
 
-        int ecount = playerDices.Keys.Count;
-        List<(int x, int y)> ekeys = playerDices.Keys.ToList();
+        int ecount = enemyDices.Keys.Count;
+        List<(int x, int y)> ekeys = enemyDices.Keys.ToList();
 
         for (int i = 0; i < ecount; i++)
         {
-            if (playerDices[ekeys[i]] == _dice)
+            if (enemyDices[ekeys[i]] == _dice)
             {
-                playerDices.Remove(ekeys[i]);
+                enemyDices.Remove(ekeys[i]);
             }
         }
+    }
 
-        Destroy(_dice.gameObject);
-        Destroy(_dice);
+    public void ShowWarn(string _text)
+    {
+        if (warnCo != null) StopCoroutine(warnCo);
+        warnCo = StartCoroutine(warningCo(_text));
+    }
+
+    private IEnumerator warningCo(string _text)
+    {
+        float time = 0;
+        warnText.text = _text;
+        warnText.enabled = true;
+        while (true)
+        {
+            time += Time.deltaTime * 2;
+
+            warnText.color = Color.Lerp(warnColor, Color.clear, time);
+
+            if (time >= 1f) break;
+
+            yield return new WaitForEndOfFrame();
+        }
+
+        warnText.color = Color.clear;
+        warnCo = null;
+        yield break;
     }
 }

@@ -11,7 +11,6 @@ public class SideTrayController : MonoBehaviour
     public static SideTrayController Instance;
 
     private GameManager gameManager;
-    private PlayerDiceManager playerDiceManager;
     private StageManager stageManager;
 
     [SerializeField] private TMP_Text cost;
@@ -39,7 +38,6 @@ public class SideTrayController : MonoBehaviour
     private void Start()
     {
         gameManager = GameManager.Instance;
-        playerDiceManager = PlayerDiceManager.Instance;
         stageManager = StageManager.Instance;
 
         StartCoroutine(initUICo());
@@ -101,7 +99,7 @@ public class SideTrayController : MonoBehaviour
         if (!_plus)
             stageManager.SetCurrentCost(-_dice.GetCost());
         else
-            stageManager.SetCurrentCost(1);
+            stageManager.SetCurrentCost(_dice.GetCost());
 
         cost.text = stageManager.GetCurrentCost() + "/" + stageManager.GetStageData().CostLimit;
         dice.text = (stageManager.GetPlayerOnBoardCount() + (_plus ? 1 : -1)) + "/" + stageManager.GetStageData().DiceLimit;
@@ -116,6 +114,7 @@ public class SideTrayController : MonoBehaviour
 
         for (int i = 0; i < count; i++)
         {
+            FirstEnter = true;
             GameObject obj = Instantiate(ownDiceList[i]);
             diceList.Add(obj.GetComponent<Dice>());
             RecallDice(obj.GetComponent<Dice>());

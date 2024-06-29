@@ -15,6 +15,9 @@ public class DiceStats : MonoBehaviour
     public int Movement;
     public List<Vector2> AttackArea;
 
+    public AudioClip rollingSound;
+    public AudioClip attackSound;
+
     public List<Debuff> Debuffed;
     public Skill SkillEnabled;
 }

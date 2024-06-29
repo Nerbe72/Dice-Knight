@@ -49,7 +49,12 @@ public class ControllerDice : MonoBehaviour, IPointerDownHandler, IPointerUpHand
         }
     }
 
-    public void Init(int x = 0, int y = 0)
+    private void Init()
+    {
+
+    }
+
+    public void InitControllerTile(int x = 0, int y = 0)
     {
         position = (x, y);
         rectTransform.localScale = Vector3.one;

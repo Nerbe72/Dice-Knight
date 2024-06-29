@@ -382,7 +382,7 @@ GameObject:
   - component: {fileID: 5537015643709201976}
   - component: {fileID: 2240749625903164000}
   m_Layer: 0
-  m_Name: EnemyDiceNormal
+  m_Name: EnemyDiceSpear
   m_TagString: EnemyDice
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -422,14 +422,15 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 7df53986659078e43b8d18cb1a4ae593, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  DiceType: 0
-  Cost: 1
-  Hp: 20
+  DiceType: 1
+  Cost: 2
+  Hp: 15
   Damage: 1
   Defense: 1
   Movement: 2
   AttackArea:
   - {x: 0, y: 0}
+  - {x: 0, y: -1}
   Debuffed: 
   SkillEnabled: 0
 --- !u!61 &7809918562118967218

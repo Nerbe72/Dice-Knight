@@ -44,3 +44,19 @@ public enum Skill
     Fire,
     Ice,
 }
+
+public enum Effect
+{
+    Rolling,
+    AttackNormal,
+    AttackSpear,
+    AttackShotgun,
+}
+
+public enum Background
+{
+    Title,
+    Easy,
+    Normal,
+    Hard,
+}
