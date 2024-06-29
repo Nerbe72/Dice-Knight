@@ -176,7 +176,7 @@ public class PlayerMove : InputAndAction
 
         while (true)
         {
-            time += Time.deltaTime * 6.44f;
+            time += Time.deltaTime * 5f;
 
             selectedDice.transform.localPosition = Vector3.Lerp(fromPos, targetPos, time);
 

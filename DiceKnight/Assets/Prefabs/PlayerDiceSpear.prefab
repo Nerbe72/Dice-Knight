@@ -545,6 +545,7 @@ GameObject:
   - component: {fileID: 2332238057501666437}
   - component: {fileID: 6177272606306404830}
   - component: {fileID: 4433790555779695285}
+  - component: {fileID: 3368367108009786373}
   m_Layer: 7
   m_Name: DiceStyle
   m_TagString: Untagged
@@ -640,6 +641,18 @@ SpriteRenderer:
   m_WasSpriteAssigned: 1
   m_MaskInteraction: 0
   m_SpriteSortPoint: 0
+--- !u!114 &3368367108009786373
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 4625205992820188899}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: da0e220f433ad3942ac1d670eca18145, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
 --- !u!1 &6093161236293089550
 GameObject:
   m_ObjectHideFlags: 0
@@ -919,6 +932,7 @@ GameObject:
   - component: {fileID: 3565742161299709354}
   - component: {fileID: 6990616386795331506}
   - component: {fileID: 2347362396626203857}
+  - component: {fileID: 7043554607988559485}
   m_Layer: 7
   m_Name: Attack
   m_TagString: Untagged
@@ -1014,6 +1028,18 @@ SpriteRenderer:
   m_WasSpriteAssigned: 0
   m_MaskInteraction: 0
   m_SpriteSortPoint: 0
+--- !u!114 &7043554607988559485
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 7539505172743043889}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: da0e220f433ad3942ac1d670eca18145, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
 --- !u!1 &8330361828047921219
 GameObject:
   m_ObjectHideFlags: 0

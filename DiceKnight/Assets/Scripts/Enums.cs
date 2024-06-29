@@ -51,6 +51,8 @@ public enum Effect
     AttackNormal,
     AttackSpear,
     AttackShotgun,
+    BreakingTile,
+
 }
 
 public enum Background
