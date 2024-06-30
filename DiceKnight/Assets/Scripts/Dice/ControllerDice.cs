@@ -49,11 +49,6 @@ public class ControllerDice : MonoBehaviour, IPointerDownHandler, IPointerUpHand
         }
     }
 
-    private void Init()
-    {
-
-    }
-
     public void InitControllerTile(int x = 0, int y = 0)
     {
         position = (x, y);

@@ -14,6 +14,7 @@ public class DiceStats : MonoBehaviour
     public int Defense;
     public int Movement;
     public List<Vector2> AttackArea;
+    public Sprite AttackAreaSprite;
 
     public List<Debuff> Debuffed;
     public Skill SkillEnabled;

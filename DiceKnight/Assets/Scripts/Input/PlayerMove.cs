@@ -43,6 +43,12 @@ public class PlayerMove : InputAndAction
         resetBtn.onClick.AddListener(ClickReset);
     }
 
+    protected override void Tutorial()
+    {
+        TutorialManager.Instance.ShowTutorial(Turn.PlayerMove);
+        firstTimeTutorial = false;
+    }
+
     protected override void PreAction()
     {
         base.PreAction();

@@ -49,6 +49,12 @@ public class PlayerSet : InputAndAction
         base.Start();
     }
 
+    protected override void Tutorial()
+    {
+        TutorialManager.Instance.ShowTutorial(Turn.PlayerSet);
+        firstTimeTutorial = false;
+    }
+
     //사전 동작 없음
     protected override void PreAction()
     {
@@ -113,6 +119,8 @@ public class PlayerSet : InputAndAction
 
             selectedDice().SetRandomNumber();
             selectedDice().SetNumberUI();
+
+            SoundManager.Instance.PlayEffect(Effect.PutDice);
         }
 
         if (hit.collider.tag == "DiceTray")

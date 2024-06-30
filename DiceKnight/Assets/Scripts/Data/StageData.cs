@@ -9,6 +9,7 @@ using UnityEngine;
 public struct StageData
 {
     public Difficulty StageDifficulty;
+    public Background BackgroundMusic;
     public SerializedDictionary<Vector2, DiceType> EnemyDiceSet;
     public float PlayerHp;
     public float EnemyHp;

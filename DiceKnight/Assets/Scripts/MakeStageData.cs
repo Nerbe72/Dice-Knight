@@ -5,7 +5,7 @@ using UnityEngine;
 
 public class MakeStageData : MonoBehaviour
 {
-    [SerializeField] private Difficulty difficulty;
+    [Tooltip("불러올 난이도를 선택(Load Json)")][SerializeField] private Difficulty difficulty;
     [SerializeField] private StageData stageData;
 
     [ContextMenu("To Json Data")]

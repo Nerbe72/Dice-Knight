@@ -50,6 +50,12 @@ public class PlayerAttack : InputAndAction
         base.Start();
     }
 
+    protected override void Tutorial()
+    {
+        TutorialManager.Instance.ShowTutorial(Turn.PlayerAttack);
+        firstTimeTutorial = false;
+    }
+
     protected override void InputAction()
     {
         if (!okBtn.gameObject.activeSelf) okBtn.gameObject.SetActive(true);

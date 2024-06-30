@@ -121,6 +121,11 @@ public class Dice : MonoBehaviour
         return stats.AttackArea;
     }
 
+    public Sprite GetAttackAreaSprite()
+    {
+        return stats.AttackAreaSprite;
+    }
+
     #endregion
 
     #region SET

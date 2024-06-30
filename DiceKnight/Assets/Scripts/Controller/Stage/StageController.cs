@@ -22,7 +22,7 @@ public class StageController : MonoBehaviour
     private bool isWaiting;
 
     Color textTargetColor;
-    Color panelTargetColor = new Color(0, 0, 0, 100);
+    Color panelTargetColor = new Color(0, 0, 0, 0.5f);
 
     private void Awake()
     {
@@ -50,6 +50,7 @@ public class StageController : MonoBehaviour
     {
         stageManager = StageManager.Instance;
         stageManager.ResetAll();
+        SoundManager.Instance.PlayBackground(stageManager.GetBackgroundMusicType());
 
         GameEnd = false;
         enterWaiting = true;
@@ -123,8 +124,6 @@ public class StageController : MonoBehaviour
             isWaiting = false;
             return;
         }
-
-        EscapeAction();
     }
 
     private void DestroyTiles(bool _isPlayers)
@@ -196,18 +195,7 @@ public class StageController : MonoBehaviour
 
     private void ClickGoTitle()
     {
+        SoundManager.Instance.PlayBackground(Background.Title);
         SceneManager.LoadScene("Title");
-    }
-
-    private void EscapeAction()
-    {
-        if (Input.GetKeyDown(KeyCode.Escape))
-        {
-            //show esc
-            Debug.Log("ESC");
-
-            //test
-            SceneManager.LoadScene("Title");
-        }
     }
 }

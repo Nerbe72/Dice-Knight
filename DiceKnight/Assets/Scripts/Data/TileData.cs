@@ -88,6 +88,7 @@ public class TileData : MonoBehaviour
         float time = 0;
         Vector3 startPos = transform.position;
 
+        SoundManager.Instance.PlayEffect(Effect.BreakingTile);
         while (true)
         {
             time += Time.deltaTime * 0.5f;

@@ -61,6 +61,8 @@ public class StageManager : MonoBehaviour
     [SerializeField] private GameObject controllerPrefab;
     private ControllerDice[,] controllerGrid;
 
+    [Header("")]
+
     private Coroutine warnCo;
     Color warnColor = new Color(255, 102, 102, 255);
 
@@ -79,13 +81,14 @@ public class StageManager : MonoBehaviour
             Destroy(gameObject);
             Destroy(this);
         }
+
+        gameManager = GameManager.Instance;
+        currentStageData = gameManager.GetStageData();
+
         Init();
 
         ResetAll = CreateGrid;
         ResetAll += PutEnemyDice;
-
-        gameManager = GameManager.Instance;
-        currentStageData = gameManager.GetStageData();
     }
 
     private void Init()
@@ -248,7 +251,7 @@ public class StageManager : MonoBehaviour
         statTexts[1].text = _selectedDice.GetDamage().ToString();
         statTexts[2].text = _selectedDice.GetDefense().ToString();
         statTexts[3].text = _selectedDice.GetMovement().ToString();
-        //attackAreaImage.sprite = attackAreaSprites[(int)_selectedDice.GetID()];
+        attackAreaImage.sprite = _selectedDice.GetAttackAreaSprite();
         statIndicator.GetComponent<RectTransform>().position = Camera.main.WorldToScreenPoint(_selectedDice.transform.position + new Vector3(1.5f, 0, 0));
         statIndicator.SetActive(true);
         ChooseDice(false);
@@ -329,6 +332,11 @@ public class StageManager : MonoBehaviour
         return currentTurn;
     }
 
+    public Background GetBackgroundMusicType()
+    {
+        return currentStageData.BackgroundMusic;
+    }
+
     public bool IsPlayerAlive()
     {
         return (playerDices.Count != 0);
@@ -369,6 +377,11 @@ public class StageManager : MonoBehaviour
     public StageData GetStageData()
     {
         return currentStageData;
+    }
+
+    public Difficulty GetDifficulty()
+    {
+        return currentStageData.StageDifficulty;
     }
 
     public int GetCurrentCost()

@@ -15,9 +15,12 @@ public class InputAndAction : MonoBehaviour
     protected bool inputHolder;
     protected bool actionHolder;
 
+    protected bool isTutorialStage;
+    protected bool firstTimeTutorial;
+
     protected virtual void Awake()
     {
-
+        
     }
 
     /// <summary>
@@ -25,6 +28,7 @@ public class InputAndAction : MonoBehaviour
     /// </summary>
     protected virtual void Start()
     {
+        firstTimeTutorial = true;
         enabled = false;
         InitStageHolders();
         stageManager = StageManager.Instance;
@@ -32,6 +36,11 @@ public class InputAndAction : MonoBehaviour
 
     protected virtual void Update()
     {
+        if (firstTimeTutorial && isTutorialStage)
+        {
+            Tutorial();
+        }
+
         if (!preActionHolder && inputHolder)
             PreAction();
         
@@ -50,6 +59,7 @@ public class InputAndAction : MonoBehaviour
         if (Application.isPlaying == false) return;
 
         ShowTurnName(StageManager.Instance.TurnNamePanel, StageManager.Instance.TurnNameText);
+        isTutorialStage = StageManager.Instance.GetDifficulty() == Difficulty.Tutorial ? true : false;
         InitStageHolders();
     }
 
@@ -66,6 +76,14 @@ public class InputAndAction : MonoBehaviour
         preActionHolder = false;
         inputHolder = true;
         actionHolder = true;
+    }
+
+    /// <summary>
+    /// 튜토리얼. 조건 만족시 firstTimeTutorial = false;
+    /// </summary>
+    protected virtual void Tutorial()
+    {
+
     }
 
     //턴 시작시 곧 바로 작동. preactionholder가 on인 경우만 동작

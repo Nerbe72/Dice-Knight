@@ -27,9 +27,11 @@ public enum DiceType
 
 public enum Difficulty
 {
+    Tutorial = -1,
     Easy,
     Normal,
     Hard,
+    Count,
 }
 
 public enum Debuff
@@ -52,13 +54,22 @@ public enum Effect
     AttackSpear,
     AttackShotgun,
     BreakingTile,
+    PutDice,
 
 }
 
 public enum Background
 {
     Title,
+    Tutorial,
     Easy,
     Normal,
     Hard,
+}
+
+public enum VolumeType
+{
+    MainVol,
+    BGMVol,
+    EffectVol,
 }
