@@ -150,7 +150,7 @@ public class StageController : MonoBehaviour
         float time = 0;
         if (_isPlayer)
         {
-            winnerText.text = "패배";
+            winnerText.text = "게임 오버";
             textTargetColor = Color.red;
         }
         else

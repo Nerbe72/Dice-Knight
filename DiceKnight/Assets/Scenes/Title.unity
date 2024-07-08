@@ -1986,7 +1986,7 @@ MonoBehaviour:
   - audio: {fileID: 8300000, guid: 531ff14819b5ecd4d972ecfd15eac68c, type: 3}
     volume: 0.8
   - audio: {fileID: 8300000, guid: 36ade3c875207624594444d8dbd00f87, type: 3}
-    volume: 0.4
+    volume: 0.2
   - audio: {fileID: 8300000, guid: 087224dd7ec352f42a3b950a07009a88, type: 3}
     volume: 0.7
   backgroundClips:

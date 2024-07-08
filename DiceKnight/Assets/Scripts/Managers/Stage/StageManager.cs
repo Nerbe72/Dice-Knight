@@ -64,7 +64,6 @@ public class StageManager : MonoBehaviour
     [Header("")]
 
     private Coroutine warnCo;
-    Color warnColor = new Color(255, 102, 102, 255);
 
     //[RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.BeforeSceneLoad)]
     //private static void asdf()
@@ -189,6 +188,7 @@ public class StageManager : MonoBehaviour
             return true;
         }
 
+        ShowWarn("배치가능한 주사위나 코스트가 부족합니다!");
         return false;
     }
 
@@ -585,9 +585,9 @@ public class StageManager : MonoBehaviour
         warnText.enabled = true;
         while (true)
         {
-            time += Time.deltaTime * 2;
+            time += Time.deltaTime * 0.3f;
 
-            warnText.color = Color.Lerp(warnColor, Color.clear, time);
+            warnText.color = Color.Lerp(Color.red, Color.clear, time);
 
             if (time >= 1f) break;
 
@@ -595,6 +595,7 @@ public class StageManager : MonoBehaviour
         }
 
         warnText.color = Color.clear;
+        warnText.enabled = false;
         warnCo = null;
         yield break;
     }

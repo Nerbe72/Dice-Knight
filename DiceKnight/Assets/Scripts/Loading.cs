@@ -19,7 +19,8 @@ public class Loading : MonoBehaviour
         float time = 0f;
         while (!asyncOperation.isDone)
         {
-            Debug.Log(asyncOperation.progress);
+            time += Time.deltaTime;
+
             if (asyncOperation.progress >= 0.9f)
             {
                 break;
@@ -27,11 +28,14 @@ public class Loading : MonoBehaviour
             yield return new WaitForEndOfFrame();
         }
 
+        //로딩된 시간 + 1초
+        time += 1f;
+
         while (true)
         {
-            time += Time.deltaTime;
+            time -= Time.deltaTime;
 
-            if (time >= 1f)
+            if (time <= 0f)
             {
                 break;
             }
