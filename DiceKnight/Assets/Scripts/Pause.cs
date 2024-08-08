@@ -49,6 +49,7 @@ public class Pause : MonoBehaviour
 
     private void ReallyExit()
     {
+        Time.timeScale = 1f;
         SoundManager.Instance.PlayBackground(Background.Title);
         SceneManager.LoadScene("Title");
     }

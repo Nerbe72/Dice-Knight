@@ -6,7 +6,6 @@ using System.Linq;
 using System.Runtime.CompilerServices;
 using TMPro;
 using UnityEditor;
-using UnityEditor.U2D.Aseprite;
 using UnityEngine;
 using UnityEngine.UI;
 
@@ -281,8 +280,8 @@ public class StageManager : MonoBehaviour
         }
 
         _sideTray.GetComponent<Animator>().SetTrigger("Hide");
-        return true;
 
+        return true;
     }
 
     public void SetContollerField()
@@ -297,10 +296,10 @@ public class StageManager : MonoBehaviour
                     obj.GetComponent<RectTransform>().parent = controllerParent.GetComponent<RectTransform>();
                     controllerGrid[i, j] = obj.GetComponent<ControllerDice>();
                 }
-                
-                controllerGrid[i, j].InitControllerTile(i, j);
             }
         }
+
+        InitAllTile();
 
         int count = playerDices.Count;
         List<(int x, int y)> keys = playerDices.Keys.ToList();
@@ -309,6 +308,17 @@ public class StageManager : MonoBehaviour
             int x = keys[i].x;
             int y = keys[i].y;
             controllerGrid[x, y].SetHaveDice();
+        }
+    }
+
+    public void InitAllTile()
+    {
+        for (int i = 0; i < GridXSize; i++)
+        {
+            for (int j = 0; j < GridYSize; j++)
+            {
+                controllerGrid[i, j].InitControllerTile(i, j);
+            }
         }
     }
 
@@ -482,6 +492,11 @@ public class StageManager : MonoBehaviour
             return playerDices.Keys.ToList<(int x, int y)>().Contains(_pos);
         else
             return enemyDices.Keys.ToList<(int x, int y)>().Contains(_pos);
+    }
+
+    public bool IsHaveDiceOnBoard(Dice _dice)
+    {
+        return playerDices.Values.Contains(_dice);
     }
 
     public bool IsPlayerSolo()

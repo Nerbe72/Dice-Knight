@@ -3,6 +3,7 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
+using UnityEngine.Audio;
 
 [Serializable]
 public class AudioData
@@ -22,9 +23,10 @@ public class SoundManager : MonoBehaviour
     /// Title:0, Tutorial:1, 이후부터 난이도
     /// </summary>
     [SerializeField] private List<AudioData> backgroundClips;
+    [SerializeField] private AudioMixerGroup mixer;
 
     #region VOLUME
-    public float MainVolume;
+    public float MasterVolume;
     public float EffectVolume;
     public float BackgroundVolume;
     #endregion
@@ -56,7 +58,7 @@ public class SoundManager : MonoBehaviour
         {
             PlayerPrefs.SetInt(VolumeType.MainVol.ToString(), 100);
         }
-        MainVolume = PlayerPrefs.GetInt(VolumeType.MainVol.ToString()) / 100f;
+        MasterVolume = PlayerPrefs.GetInt(VolumeType.MainVol.ToString()) / 100f;
 
         if (!PlayerPrefs.HasKey(VolumeType.BGMVol.ToString()))
         {
@@ -71,19 +73,26 @@ public class SoundManager : MonoBehaviour
         EffectVolume = PlayerPrefs.GetInt(VolumeType.EffectVol.ToString()) / 100f;
 
         
-        audioSources[0].volume = MainVolume * BackgroundVolume;
-        audioSources[1].volume = MainVolume * EffectVolume;
+        audioSources[0].volume = MasterVolume * BackgroundVolume;
+        audioSources[1].volume = MasterVolume * EffectVolume;
     }
 
     public void SetVolume()
     {
-        audioSources[0].volume = MainVolume * BackgroundVolume;
-        audioSources[1].volume = MainVolume * EffectVolume;
+        audioSources[0].volume = MasterVolume * BackgroundVolume;
+        audioSources[1].volume = MasterVolume * EffectVolume;
+
+        //
+        mixer.audioMixer.SetFloat("MasterVol", MathF.Log10(MasterVolume) * 20);
+        mixer.audioMixer.SetFloat("BGMVol", MathF.Log10(BackgroundVolume) * 20);
+        mixer.audioMixer.SetFloat("SFXVol", MathF.Log10(EffectVolume) * 20);
+
+        
     }
 
     public void SaveVolume()
     {
-        PlayerPrefs.SetInt(VolumeType.MainVol.ToString(), (int)(MainVolume * 100));
+        PlayerPrefs.SetInt(VolumeType.MainVol.ToString(), (int)(MasterVolume * 100));
         PlayerPrefs.SetInt(VolumeType.BGMVol.ToString(), (int)(BackgroundVolume * 100));
         PlayerPrefs.SetInt(VolumeType.EffectVol.ToString(), (int)(EffectVolume * 100));
     }
@@ -91,7 +100,7 @@ public class SoundManager : MonoBehaviour
     public void PlayBackground(Background _bgm)
     {
         audioSources[0].loop = true;
-        audioSources[0].volume = MainVolume * EffectVolume * backgroundClips[(int)_bgm].volume;
+        audioSources[0].volume = MasterVolume * BackgroundVolume * backgroundClips[(int)_bgm].volume;
         audioSources[0].clip = backgroundClips[(int)_bgm].audio;
         audioSources[0].Play();
     }
@@ -103,7 +112,7 @@ public class SoundManager : MonoBehaviour
 
     public void PlayEffect(Effect _effect)
     {
-        audioSources[1].volume = effectClips[(int)_effect].volume;
+        audioSources[1].volume = MasterVolume * EffectVolume * effectClips[(int)_effect].volume;
         audioSources[1].PlayOneShot(effectClips[(int)_effect].audio);
     }
 

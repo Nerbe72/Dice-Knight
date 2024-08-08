@@ -1,6 +1,5 @@
 using System.Collections;
 using System.Collections.Generic;
-using UnityEditor.SearchService;
 using UnityEngine;
 using UnityEngine.SceneManagement;
 using UnityEngine.UIElements;
@@ -55,7 +54,7 @@ public class TitleButtonController : MonoBehaviour
         difficultyButtons.Add(root.Q<Button>("Normal"));
         difficultyButtons[1].clicked += () => { Stage(Difficulty.Normal); };
         difficultyButtons.Add(root.Q<Button>("Hard"));
-        difficultyButtons[2].clicked += () => { Stage(Difficulty.Hard); };
+        //difficultyButtons[2].clicked += () => { Stage(Difficulty.Hard); };
 
         mainVolume = root.Q<Slider>("mainVol");
         bgmVolume = root.Q<Slider>("bgmVol");
@@ -77,7 +76,7 @@ public class TitleButtonController : MonoBehaviour
 
         mainVolume.RegisterCallback<ChangeEvent<float>>((evt) =>
         {
-            SoundManager.Instance.MainVolume = evt.newValue / 100;
+            SoundManager.Instance.MasterVolume = evt.newValue / 100;
             SoundManager.Instance.SetVolume();
         });
 

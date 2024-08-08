@@ -12,7 +12,7 @@ public class MakeStageData : MonoBehaviour
     void SaveStageDataToJson()
     {
         string jsonData = JsonUtility.ToJson(stageData);
-        string path = Path.Combine(Application.dataPath + "/StageDatas", stageData.StageDifficulty + ".json");
+        string path = Path.Combine(Application.dataPath + "/Resources/StageDatas", stageData.StageDifficulty + ".json");
         File.WriteAllText(path, jsonData);
         print("Successfully Exported\n" + path);
     }
@@ -20,7 +20,7 @@ public class MakeStageData : MonoBehaviour
     [ContextMenu("Load Json Data")]
     void LoadStageDataFromJson()
     {
-        string stagePath = Path.Combine(Application.dataPath + "/StageDatas", difficulty + ".json");
+        string stagePath = Path.Combine(Application.dataPath + "/Resources/StageDatas", difficulty + ".json");
 
         try
         {

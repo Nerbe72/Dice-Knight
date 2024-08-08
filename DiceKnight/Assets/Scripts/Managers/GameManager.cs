@@ -1,6 +1,6 @@
 using System.Collections.Generic;
-using System.IO;
 using UnityEngine;
+using UnityEngine.SceneManagement;
 
 public class GameManager : MonoBehaviour
 {
@@ -32,7 +32,7 @@ public class GameManager : MonoBehaviour
 
         Application.targetFrameRate = 60;
     }
-    
+
     private void AddDice()
     {
         //테스트용 주사위 추가
@@ -64,16 +64,17 @@ public class GameManager : MonoBehaviour
          * 적이 생각하는 시간(더미)의 최소값
          */
 
-        string stagePath = Path.Combine(Application.dataPath + "/StageDatas", _diff + ".json");
-
         try
         {
-            string stageJson = File.ReadAllText(stagePath);
-            selectedStageData = JsonUtility.FromJson<StageData>(stageJson);
+            string stagePath = "StageDatas/" + _diff;
+
+            var stageJson = Resources.Load<TextAsset>(stagePath);
+
+            selectedStageData = JsonUtility.FromJson<StageData>(stageJson.text);
         }
         catch
         {
-            return;
+            Application.Quit();
         }
     }
 

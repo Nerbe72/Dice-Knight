@@ -120,6 +120,11 @@ public class SideTrayController : MonoBehaviour
             RecallDice(obj.GetComponent<Dice>());
         }
     }
+
+    public List<Dice> GetDiceList()
+    {
+        return diceList;
+    }
     
     private IEnumerator initUICo()
     {

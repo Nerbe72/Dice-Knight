@@ -99,13 +99,16 @@ public class ControllerDice : MonoBehaviour, IPointerDownHandler, IPointerUpHand
 
             PlayerDiceManager.Instance.SelectDice(StageManager.Instance.GetDiceFromXY(true, holdingTarget.GetXY()));
 
-            //그럴일은 없지만 혹시나 선택된 주사위가 버그로 없어지는 경우 꼬임을 방지
+            //선택된 주사위가 없어지는 경우의 꼬임을 방지
             if (PlayerDiceManager.Instance.SelectedDice() == null) return;
 
             holdingMovement = PlayerDiceManager.Instance.SelectedDice().GetMovement();
             holdingDice = PlayerDiceManager.Instance.SelectedDice();
             currentMovement = 0;
             isDragging = true;
+
+            holdingDice.tempNumber = holdingDice.GetCurrentNumber();
+
             ShowNumberAround(holdingTarget);
         }
     }
@@ -177,7 +180,6 @@ public class ControllerDice : MonoBehaviour, IPointerDownHandler, IPointerUpHand
     public void ShowNumberAround(ControllerDice _target)
     {
         (int x, int y) xy = _target.GetXY();
-
         _target.isNumber = true;
         _target.current.text = holdingDice.tempNumber.current.ToString();
         _target.current.color = Color.white;

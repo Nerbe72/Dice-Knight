@@ -78,7 +78,8 @@ public class PlayerMove : InputAndAction
     private void Init()
     {
         movePointer = 0;
-        movingChecker.Clear();nextMoveNumber.Clear();
+        movingChecker.Clear();
+        nextMoveNumber.Clear();
         nextMovePosition.Clear();
         movingTo.Clear();
 

@@ -5,7 +5,6 @@ using UnityEngine.SceneManagement;
 
 public class Loading : MonoBehaviour
 {
-    
     private void Start()
     {
         StartCoroutine(LoadSceneCo());
@@ -17,10 +16,12 @@ public class Loading : MonoBehaviour
         AsyncOperation asyncOperation = SceneManager.LoadSceneAsync("Stage");
         asyncOperation.allowSceneActivation = false;
         float time = 0f;
+
+        
         while (!asyncOperation.isDone)
         {
             time += Time.deltaTime;
-
+            Debug.Log("Loading");
             if (asyncOperation.progress >= 0.9f)
             {
                 break;
@@ -29,12 +30,12 @@ public class Loading : MonoBehaviour
         }
 
         //로딩된 시간 + 1초
-        time += 1f;
+        time = 1.5f;
 
         while (true)
         {
             time -= Time.deltaTime;
-
+            Debug.Log("Loading Dummy");
             if (time <= 0f)
             {
                 break;
@@ -42,6 +43,7 @@ public class Loading : MonoBehaviour
 
             yield return new WaitForEndOfFrame();
         }
+        Debug.Log("Loading End");
 
         asyncOperation.allowSceneActivation = true;
 

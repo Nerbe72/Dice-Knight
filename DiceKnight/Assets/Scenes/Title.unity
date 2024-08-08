@@ -1051,18 +1051,18 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 28530a9960fe26f4f8fd5952ded93fdc, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  difficulty: 0
+  difficulty: -1
   stageData:
-    StageDifficulty: 0
-    BackgroundMusic: 2
+    StageDifficulty: -1
+    BackgroundMusic: 1
     EnemyDiceSet:
       _serializedList:
       - Key: {x: 2, y: 1}
-        Value: 1
+        Value: 0
     PlayerHp: 30
     EnemyHp: 30
-    CostLimit: 3
-    DiceLimit: 2
+    CostLimit: 1
+    DiceLimit: 1
     EnemyThinkingTime: 4
 --- !u!4 &913524288
 Transform:
@@ -1986,7 +1986,7 @@ MonoBehaviour:
   - audio: {fileID: 8300000, guid: 531ff14819b5ecd4d972ecfd15eac68c, type: 3}
     volume: 0.8
   - audio: {fileID: 8300000, guid: 36ade3c875207624594444d8dbd00f87, type: 3}
-    volume: 0.2
+    volume: 0.05
   - audio: {fileID: 8300000, guid: 087224dd7ec352f42a3b950a07009a88, type: 3}
     volume: 0.7
   backgroundClips:
@@ -1996,6 +1996,7 @@ MonoBehaviour:
     volume: 0.9
   - audio: {fileID: 8300000, guid: e230e9415077e82458d45aca9b6caeac, type: 3}
     volume: 0.9
+  mixer: {fileID: 24300002, guid: c304aa921c945a945b1504b33b98e0ed, type: 2}
   MainVolume: 0
   EffectVolume: 0
   BackgroundVolume: 0
@@ -2023,7 +2024,7 @@ AudioSource:
   m_GameObject: {fileID: 1530657863}
   m_Enabled: 1
   serializedVersion: 4
-  OutputAudioMixerGroup: {fileID: 0}
+  OutputAudioMixerGroup: {fileID: -3890852702052197163, guid: c304aa921c945a945b1504b33b98e0ed, type: 2}
   m_audioClip: {fileID: 0}
   m_PlayOnAwake: 1
   m_Volume: 1
@@ -2119,7 +2120,7 @@ AudioSource:
   m_GameObject: {fileID: 1530657863}
   m_Enabled: 1
   serializedVersion: 4
-  OutputAudioMixerGroup: {fileID: 0}
+  OutputAudioMixerGroup: {fileID: 5084478868377402356, guid: c304aa921c945a945b1504b33b98e0ed, type: 2}
   m_audioClip: {fileID: 0}
   m_PlayOnAwake: 1
   m_Volume: 1

@@ -1,8 +1,5 @@
 using System.Collections;
 using System.Collections.Generic;
-using Unity.VisualScripting;
-using UnityEditor.Experimental.RestService;
-using UnityEditor.SceneManagement;
 using UnityEngine;
 using UnityEngine.UI;
 
@@ -136,6 +133,17 @@ public class PlayerSet : InputAndAction
     {
         if (stageManager.HideList(tray))
         {
+            List<Dice> dices = SideTrayController.Instance.GetDiceList();
+            int count = dices.Count;
+            for (int i = 0; i < count; i++)
+            {
+                if (!stageManager.IsHaveDiceOnBoard(dices[i]))
+                {
+                    dices[i].Hurt(int.MaxValue);
+                }
+            }
+
+
             stageManager.NextTurn();
             nextBtn.gameObject.SetActive(false);
             recallTray.SetActive(false);
